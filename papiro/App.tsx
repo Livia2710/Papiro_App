@@ -1,18 +1,34 @@
+export type RootStackParamList = {
+  Inicial: undefined;
+  Login: undefined;
+  Detalhe: undefined;
+  Leitor: undefined;
+  Menu: {
+  screen?: 'Home' | 'Biblioteca' | 'Sobre';
+  };
+};
+
 import { NavigationContainer } from '@react-navigation/native';
 import { ImageBackground, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 // Telas
 import Sobre from "./telas/Sobre";
 import Home  from "./telas/Home";
 import Inicial from './telas/Inicial';
+import Login from './telas/Login';
+import Biblioteca from './telas/Biblioteca';
+import Detalhe from './telas/Detalhe';
+import Leitor from './telas/Leitor';
 
 // Fontes
 import { useFonts, Merriweather_400Regular, Merriweather_700Bold } from '@expo-google-fonts/merriweather';
 import { Lora_400Regular, Lora_700Bold } from '@expo-google-fonts/lora';
 
 const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function Menu(){
   return (
@@ -23,12 +39,12 @@ function Menu(){
           let iconName:any;
 
           if(route.name==="Sobre"){
-            iconName = focused ? 'paw' : "paw-outline";
+            iconName = focused ? 'person' : "person-outline";
           }
           else if(route.name==="Home"){
             iconName = focused ? 'home' : "home-outline";
           }
-          else if(route.name==="Inicial"){
+          else if(route.name==="Biblioteca"){
             iconName = focused ? 'book' : "book-outline";
           }
 
@@ -91,8 +107,8 @@ function Menu(){
 
       })}
     >
-      <Tab.Screen name="Inicial" component={Inicial}/>
       <Tab.Screen name="Home" component={Home}/>
+      <Tab.Screen name="Biblioteca" component={Biblioteca}/>
       <Tab.Screen name="Sobre" component={Sobre}/>
     </Tab.Navigator>
   )
@@ -113,7 +129,13 @@ export default function App() {
 
   return (
     <NavigationContainer>
-      <Menu/>
+      <Stack.Navigator screenOptions={{ headerShown:false}}>
+          <Stack.Screen name='Inicial' component={Inicial}/>
+          <Stack.Screen name='Login' component={Login}/>
+          <Stack.Screen name='Menu' component={Menu}/>
+          <Stack.Screen name='Detalhe' component={Detalhe}/>
+           <Stack.Screen name='Leitor' component={Leitor}/>
+      </Stack.Navigator>
     </NavigationContainer>
   )
 }
