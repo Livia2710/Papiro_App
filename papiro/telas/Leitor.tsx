@@ -37,12 +37,20 @@ export default function Leitor() {
   return (
     <View style={[
       styles.container,
-      { backgroundColor: darkMode ? "#121212" : "#FAEFE7" }
+      { backgroundColor: darkMode ? "#5A3A2B" : "#F8EDE5" }
     ]}>
 
       {/* Botão de Voltar */}
       <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
-        <Ionicons name='arrow-back' size={24} color={darkMode ? "#fff" : "#5A3A2B"} />
+        <Ionicons name='arrow-back' size={24} color={darkMode ? "#F8EDE5" : "#5A3A2B"} />
+      </TouchableOpacity>
+
+      {/* Modo Escuro/Claro */}
+      <TouchableOpacity 
+        style={styles.theme}
+        onPress={() => setDarkMode(!darkMode)}
+      >
+        <Ionicons name={darkMode ? "sunny-outline" : "moon-outline"} size={24} color={darkMode ? "#F8EDE5" : "#5A3A2B"} />
       </TouchableOpacity>
 
       {/* Configurações */}
@@ -50,7 +58,7 @@ export default function Leitor() {
         style={styles.settings}
         onPress={() => setShowMenu(!showMenu)}
       >
-        <Ionicons name="settings-outline" size={24} color={darkMode ? "#fff" : "#5A3A2B"} />
+        <Ionicons name="settings-outline" size={24} color={darkMode ? "#F8EDE5" : "#5A3A2B"} />
       </TouchableOpacity>
 
       {/* Audio */}
@@ -58,7 +66,7 @@ export default function Leitor() {
       onPress={falarTexto}
       onLongPress={pararAudio} //segura para parar
       >
-        <Ionicons name={isSpeaking ? "pause" : "volume-high-outline"} size={24} color={darkMode ? "#fff" : "#5A3A2B"} />
+        <Ionicons name={isSpeaking ? "pause" : "volume-high-outline"} size={24} color={darkMode ? "#F8EDE5" : "#5A3A2B"} />
       </TouchableOpacity>
 
       {/* Painel */}
@@ -69,13 +77,11 @@ export default function Leitor() {
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => setFontSize(18)}>
-            <Text style={styles.menuText}>A+</Text>
+            <Text style={styles.menuText}>A</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => setDarkMode(!darkMode)}>
-            <Text style={styles.menuText}>
-              {darkMode ? "Modo Claro ☀️" : "Modo Escuro 🌙"}
-            </Text>
+          <TouchableOpacity onPress={() => setFontSize(20)}>
+            <Text style={styles.menuText}>A+</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -88,14 +94,14 @@ export default function Leitor() {
       >
         <Text style={[
           styles.title,
-          { color: darkMode ? "#fff" : "#5A3A2B" }
+          { color: darkMode ? "#F8EDE5" : "#5A3A2B" }
         ]}>
           {livro.title}
         </Text>
 
         <Text style={[
           styles.chapter,
-          { color: darkMode ? "#ccc" : "#A67C52" }
+          { color: darkMode ? "#D4A373" : "#00897B" }
         ]}>
           Capítulo 1
         </Text>
@@ -112,7 +118,7 @@ export default function Leitor() {
                 {
                   fontSize: fontSize,
                   lineHeight: fontSize * 1.6,
-                  color: darkMode ? "#F5F5F5" : "#333",
+                  color: darkMode ? "#F8EDE5" : "#5A3A2B",
                 }
               ]}
             >
@@ -124,7 +130,7 @@ export default function Leitor() {
         <View style={styles.end}>
           <Text style={[
             styles.endText,
-            { color: darkMode ? "#ccc" : "#5A3A2B" }
+            { color: darkMode ? "#D4A373" : "#5A3A2B" }
           ]}>
             Você chegou ao fim da prévia
           </Text>
@@ -147,29 +153,37 @@ const styles = StyleSheet.create({
 
   back: {
     position: "absolute",
-    top: 50,
+    top: 70,
     left: 20,
+    zIndex: 10,
+  },
+  theme:{
+    position: "absolute",
+    top: 70,
+    right: 100,
     zIndex: 10,
   },
 
   settings: {
     position: "absolute",
-    top: 50,
+    top: 70,
     right: 60,
     zIndex: 10,
   },
 
   audio: {
     position: "absolute",
-    top: 50,
+    top: 70,
     right: 20,
     zIndex: 10,
   },
 
   menu: {
     position: "absolute",
-    top: 90,
-    right: 20,
+    flexDirection:"row",
+    gap:15,
+    top: 100,
+    right: 30,
     backgroundColor: "#2A9D8F",
     padding: 10,
     borderRadius: 10,
@@ -177,7 +191,7 @@ const styles = StyleSheet.create({
   },
 
   menuText: {
-    color: "#fff",
+    color: "#F8EDE5",
     marginBottom: 5,
     fontSize: 14,
   },
@@ -222,7 +236,7 @@ const styles = StyleSheet.create({
   },
 
   buyText: {
-    color: "#fff",
+    color: "#F8EDE5",
     fontSize: 16,
     fontFamily: "Merriweather_700Bold",
   },

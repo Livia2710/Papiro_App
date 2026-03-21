@@ -97,6 +97,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F6E2D2",
     padding: 15,
+    paddingTop:100,
   },
 
   searchContainer: {

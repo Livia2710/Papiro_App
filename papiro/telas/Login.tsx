@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FAEFE7',
     alignItems: 'center',
-    paddingTop: 60
+    paddingTop: 150
   },
   back: {
     position:"absolute",
@@ -81,8 +81,8 @@ const styles = StyleSheet.create({
     marginBottom:10
   },
   logo:{
-    width: 100,
-    height: 100,
+    width: 140,
+    height: 140,
   },
   title: {
     fontSize: 32,

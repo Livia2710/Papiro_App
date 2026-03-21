@@ -82,7 +82,7 @@ function Menu(){
           backgroundColor:"#8B4513",
           borderTopLeftRadius:20,
           borderTopRightRadius:20,
-          height: 65,
+          height: 80,
           borderTopWidth:0,
           position:"absolute",
           overflow:"hidden" //Esconde as partes indesejados, como aquelas partes brancas
