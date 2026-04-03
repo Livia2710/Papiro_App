@@ -1,51 +1,98 @@
-# 📖 Papiro - Biblioteca no seu bolso
+# 📖 Papiro
 
-Aplicativo de leitura digital desenvolvido para proporcionar uma experiência prática, acessível e moderna para leitura de livros.
+### *A biblioteca no seu bolso*
 
----
-
-## 🖼️ Preview
-
-![Preview do app](./preview/Preview.jpeg)
+<p align="center">
+  <img src="./preview/Preview.jpeg" width="250"/>
+</p>
 
 ---
 
 ## 🎥 Demonstração
 
-![Leitor do app](./preview/Papiro_App.mp4)
+<p align="center">
+  <img src="./preview/Papiro_App.gif" width="250"/>
+</p>
 
 ---
 
-## Sobre o projeto
+##  Sobre o projeto
 
-O Papiro é um aplicativo de leitura digital que permite ao usuário explorar livros, filtrar por categorias e realizar a leitura diretamente na plataforma.
+O **Papiro** é um aplicativo de leitura digital desenvolvido com foco em proporcionar uma experiência prática, intuitiva e moderna para leitura de livros.
 
-O projeto evoluiu de uma versão web simples para um aplicativo completo, com foco em experiência do usuário e navegação intuitiva.
+O projeto começou como uma aplicação web acadêmica e evoluiu para um aplicativo completo, priorizando navegação fluida e experiência do usuário.
 
 ---
 
 ##  Funcionalidades
 
--  Busca por nome ou autor  
--  Filtro por categorias  
--  Sistema de favoritos  
--  Página de detalhes do livro  
--  Navegação por abas (Home, Biblioteca, Sobre)  
+<div align="center">
 
-### Leitor
+| Funcionalidade | Descrição                      |
+| -------------- | ------------------------------ |
+|  Busca       | Pesquisa por nome ou autor     |
+|  Categorias  | Filtro por gêneros literários  |
+|  Favoritos    | Sistema de biblioteca pessoal  |
+|  Detalhes    | Informações completas do livro |
+|  Navegação   | Tabs: Home, Biblioteca e Sobre |
 
-- Modo escuro  
-- Ajuste de tamanho da fonte  
-- Leitura de capítulos  
-- Leitura por voz (em desenvolvimento)  
+</div>
 
 ---
 
-##  Tecnologias utilizadas
+## 📖 Experiência de Leitura
 
-- React Native
-- Expo
-- TypeScript
-- JavaScript
-- Styled Components 
+<p align="center">
+  Funcionalidades pensadas para conforto e acessibilidade
+</p>
 
+*  Modo escuro
+*  Ajuste de tamanho da fonte
+*  Leitura de capítulos
+*  Leitura por voz *(em desenvolvimento)*
+
+---
+
+## Tecnologias utilizadas
+
+<p align="center">
+
+React Native • Expo • TypeScript • JavaScript • Styled Components
+
+</p>
+
+---
+
+##  Status
+
+<div align="center">
+
+🚧 Em desenvolvimento
+✔️ Interface completa
+🔄 Integração com banco de dados em andamento
+
+</div>
+
+---
+
+##  Diferenciais
+
+*  Interface mobile-first
+*  Experiência de leitura personalizada
+*  Navegação fluida
+*  Funcionalidades avançadas em desenvolvimento
+
+---
+
+##  Próximos passos
+
+* Sistema de autenticação
+* Integração com banco de dados
+* Sincronização de biblioteca
+* Finalização da leitura por voz
+
+---
+
+## 💜 Sobre
+
+Projeto desenvolvido com foco em aprendizado prático e evolução contínua em desenvolvimento mobile.
