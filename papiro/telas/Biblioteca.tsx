@@ -26,7 +26,9 @@ export default function Biblioteca() {
     : livros;
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container}
+    contentContainerStyle={{ paddingBottom: 40 }}
+  showsVerticalScrollIndicator={false}>
 
       {/* Título */}
       <Text style={styles.title}>Minha Biblioteca</Text>
@@ -82,7 +84,6 @@ export default function Biblioteca() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: "#F6E2D2",
     padding: 15,
     paddingTop:100,

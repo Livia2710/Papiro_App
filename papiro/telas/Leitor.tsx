@@ -18,15 +18,30 @@ export default function Leitor() {
 
   const [isSpeaking, setIsSpeaking] = useState(false);
  
-  function falarTexto() {
-    Speech.speak(livro.chapter1, {
+  function dividirTexto(texto: string){
+    return texto.match(/.{1,300}/g) || [];
+  }
+
+   async function falarTexto() {
+    setIsSpeaking(true); 
+
+    const partes = dividirTexto(livro.chapter1);
+
+    for(let i = 0; i < partes.length; i++){
+      if(!isSpeaking) break;
+
+      await new Promise<void>((resolve) => {
+        Speech.speak(partes[i], {
         language: "pt-BR",
         rate: 0.9, //velocidade
         pitch: 1.0, //tom da voz
-        onStart: () => setIsSpeaking(true),
-        onDone: () => setIsSpeaking(false),
-        onStopped: () => setIsSpeaking(false),
-    });
+        onDone: () => resolve(),
+        onStopped: () =>resolve(),
+        });
+      });
+    }
+
+    setIsSpeaking(false);
   }
 
   function pararAudio(){
@@ -46,11 +61,19 @@ export default function Leitor() {
       </TouchableOpacity>
 
       {/* Modo Escuro/Claro */}
+<<<<<<< Updated upstream
       <TouchableOpacity 
         style={styles.theme}
         onPress={() => setDarkMode(!darkMode)}
       >
         <Ionicons name={darkMode ? "sunny-outline" : "moon-outline"} size={24} color={darkMode ? "#F8EDE5" : "#5A3A2B"} />
+=======
+      <TouchableOpacity  
+      style={styles.theme}
+      onPress={()=> setDarkMode(!darkMode)}>
+        <Ionicons name={darkMode ? "sunny-outline" : "moon-outline"} size={24} color={darkMode ? "#f8ede5" : "5A3A2B"}/>
+
+>>>>>>> Stashed changes
       </TouchableOpacity>
 
       {/* Configurações */}
@@ -63,7 +86,7 @@ export default function Leitor() {
 
       {/* Audio */}
       <TouchableOpacity style={styles.audio}
-      onPress={falarTexto}
+      onPress={isSpeaking ? pararAudio : falarTexto}
       onLongPress={pararAudio} //segura para parar
       >
         <Ionicons name={isSpeaking ? "pause" : "volume-high-outline"} size={24} color={darkMode ? "#F8EDE5" : "#5A3A2B"} />
@@ -72,20 +95,32 @@ export default function Leitor() {
       {/* Painel */}
       {showMenu && (
         <View style={styles.menu}>
+
+          {/* Fonte */}
+          <View style={styles.fontRow}>
           <TouchableOpacity onPress={() => setFontSize(14)}>
-            <Text style={styles.menuText}>A-</Text>
+            <Ionicons name="text-outline" size={18} color="#F8EDE5" />
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => setFontSize(18)}>
+<<<<<<< Updated upstream
             <Text style={styles.menuText}>A</Text>
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => setFontSize(20)}>
             <Text style={styles.menuText}>A+</Text>
+=======
+             <Ionicons name="text" size={22} color="#F8EDE5" />
           </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => setFontSize(22)}>
+             <Ionicons name="text" size={24} color="#F8EDE5" />
+>>>>>>> Stashed changes
+          </TouchableOpacity>
+
+           </View>
         </View>
       )}
-
       {/* Conteúdo */}
       <ScrollView
         style={styles.reader}
@@ -94,7 +129,11 @@ export default function Leitor() {
       >
         <Text style={[
           styles.title,
+<<<<<<< Updated upstream
           { color: darkMode ? "#F8EDE5" : "#5A3A2B" }
+=======
+          { color: darkMode ? "#F6E2D2" : "#5A3A2B" }
+>>>>>>> Stashed changes
         ]}>
           {livro.title}
         </Text>
@@ -108,7 +147,6 @@ export default function Leitor() {
 
         {/*  TEXTO COM PARÁGRAFOS */}
         {livro.chapter1
-          .trim()
           .split("\n\n")
           .map((p: string, index: number) => (
             <Text
@@ -157,9 +195,15 @@ const styles = StyleSheet.create({
     left: 20,
     zIndex: 10,
   },
+<<<<<<< Updated upstream
   theme:{
     position: "absolute",
     top: 70,
+=======
+   theme: {
+    position: "absolute",
+    top: 50,
+>>>>>>> Stashed changes
     right: 100,
     zIndex: 10,
   },
@@ -171,6 +215,12 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
 
+  fontRow: {
+    flexDirection:"row",
+    justifyContent: "space-between",
+    gap: 15,
+  },
+
   audio: {
     position: "absolute",
     top: 70,
@@ -180,20 +230,32 @@ const styles = StyleSheet.create({
 
   menu: {
     position: "absolute",
+<<<<<<< Updated upstream
     flexDirection:"row",
     gap:15,
     top: 100,
     right: 30,
     backgroundColor: "#2A9D8F",
+=======
+    top: 90,
+    right: 20,
+    backgroundColor: "#D4A373",
+>>>>>>> Stashed changes
     padding: 10,
     borderRadius: 10,
     zIndex: 10,
-  },
 
+<<<<<<< Updated upstream
   menuText: {
     color: "#F8EDE5",
     marginBottom: 5,
     fontSize: 14,
+=======
+    shadowColor: "#8B4513",
+    shadowOpacity: 1,
+    shadowRadius: 5,
+    elevation: 3,
+>>>>>>> Stashed changes
   },
 
   reader: {

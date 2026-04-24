@@ -1,16 +1,18 @@
-import { StyleSheet, Text, TextInput, View, Image, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {  TextInput, //Campo de digitação
+  StyleSheet, Text,  View, Image, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native'; //Hook de navegação
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
 import { Ionicons } from '@expo/vector-icons';
 
-type NavigationProps = NativeStackNavigationProp<RootStackParamList, "Login">
+// Esse parte diz: Essa tela é a Login e usa o Stack
+type NavigationProps = NativeStackNavigationProp<RootStackParamList, "Login"> //Curiosidade: como isso é puramente TypeScript pode ficar da função
 
 
 export default function Login() {
-  
-
+  // Controle de navegação
   const navigation = useNavigation<NavigationProps>();
+
   return (
     <View style={styles.container}>
       {/* Botão para voltar */}
@@ -41,11 +43,12 @@ export default function Login() {
         <TextInput
         placeholder='Digite sua senha'
         placeholderTextColor="#5A3A2B"  
-        secureTextEntry 
+        secureTextEntry //Esconde o texot(vira *****)
         style={styles.input}/>
 
          {/* Botão */}
          <TouchableOpacity style={styles.button} 
+         //Diferente do navigate, o replace substitui a tela atual, em vez de voltar pro login
          onPress={()=> navigation.replace("Menu", { screen: "Home"})}>
             <Text style={styles.buttonText}>Entrar</Text>
          </TouchableOpacity>

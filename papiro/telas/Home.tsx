@@ -1,68 +1,91 @@
-import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity, ScrollView } from 'react-native';
+import { ScrollView, //Permite rolar a tela(vertical ou horizontal)
+  StyleSheet, Text, View, Image, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useState } from 'react';
+import { RootStackParamList } from "../App"; //Lista de telas definida no App
+import { NativeStackNavigationProp } from "@react-navigation/native-stack"; //Isso é o Typescript ajudando a dizer quais telas existem(tipagem)
+
+import { useState } from 'react'; //Guarda valores que mudam na tela
 
 // data
 import { livros } from "../data/livros";
 import { categorias } from "../data/categorias";
 
-export default function Home() {
-  const navigation = useNavigation<any>();
+type NavigationProps = NativeStackNavigationProp<RootStackParamList> //Não especifica, pois Home está dentro do Menu
 
-  const [search, setSearch] = useState("");
-  const [selectedCategory, setselectedCategory] = useState<string | null>(null);
+export default function Home() {
+ const navigation = useNavigation<NavigationProps>(); 
+
+  const [search, setSearch] = useState(""); //Guarda o texto digitado na busca
+  const [selectedCategory, setselectedCategory] = useState<string | null>(null); //Pode ser um String ou null
 
   // Filtro
   const filtroLivros = livros.filter((livro) => {
+    //Se tiver categoria selecionado: só mostra livrso daquela categoria. Se não tiver, mostrar todos(true)
     const PorCategoria = selectedCategory ? livro?.category === selectedCategory : true;
+    //trim() => remove espaços
+    //toLowerCase() => ignora maiúscula/minúscula
     const texto = search.trim().toLowerCase();
+    //Verifica se o texto é parecido com algum  título ou autor
     const PorBusca = livro?.title.toLowerCase().includes(texto) || livro?.author.toLocaleLowerCase().includes(texto);
 
+    //Só filtra se for por categoria ou por busca
     return PorCategoria && PorBusca;
   });
 
   return (
+    //Tela inteira rolável
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      
      {/* Buscar */}
       <View style={styles.searchContainer}>
-        <Ionicons name='search' size={20} color="#5A3A2B"/>
+        {/* Ícone de lupa */}
+        <Ionicons name='search' size={20} color="#5A3A2B"/> 
       <TextInput style={styles.searchInput}
       placeholder='Buscar livros'
       placeholderTextColor="#5A3A2B"
-      value={search}
-      onChangeText={setSearch}/>
+      value={search} //Pega o valor atual
+      onChangeText={setSearch}/> {/*Atualiza o estado e o filtro roda*/}
     </View>
+
     {/* Categorias */}
     <Text style={styles.sectionTitle}>Categorias</Text>
-    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false}> {/*Esse false tira aquele cursos de scroll feio */}
+      {/* Percorre lista de categoria */}
       {categorias.map((cat)=> (
         <TouchableOpacity 
         key={cat} 
         style={[styles.category,
-          selectedCategory === cat && styles.categoryActive
+          selectedCategory === cat && styles.categoryActive //Se estiver selecionado, aplica o estilo extra
         ]}
+        // Clicou na mesma categoria -> desmarca
+        //Clicou em outr -> Seleciona
         onPress={()=> setselectedCategory(selectedCategory === cat ? null : cat)}
         >
            <Text style={styles.categoryText}>{cat}</Text>
         </TouchableOpacity>
       ))}
     </ScrollView>
+
     {/* Destaque */}
     <View style={styles.rowTitle}>
       <Text style={styles.sectionTitle}>Destaques</Text>
       <Ionicons name='chevron-forward' size={20} color="#5A3A2B"/>
     </View>
     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      {/* Se não tiver resultado */}
       {filtroLivros.length === 0 ? (
+        // Aparece esse texto
           <Text style={styles.noResult}>Nenhum livro encontrado</Text>
       ) : (
+        // Se sim, percorre livros
         filtroLivros.map((livro) => (
         <View key={livro?.id} style={styles.card}>
           <Image source={livro?.image} style={styles.image} />
           <Text style={styles.bookTitle}>{livro?.title}</Text>
           <Text style={styles.author}>{livro?.author}</Text>
           <Text style={styles.rating}>⭐ {livro?.rating}</Text>
+          {/* Vai para a tela Detalhe, passando o livro como parâmetro */}
           <TouchableOpacity style={styles.button}
           onPress={()=> navigation.navigate("Detalhe", { livro })}>
             <Text style={styles.buttonText}>Saber mais</Text>

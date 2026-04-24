@@ -1,35 +1,52 @@
-import { ImageBackground, Text, View, StyleSheet, Image, TouchableOpacity, Animated, Dimensions } from "react-native";
-import { useEffect, useRef } from "react";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Ionicons } from "@expo/vector-icons";
-import { RootStackParamList } from "../App";
+import { ImageBackground, //Imagem de Fundo
+  Text, //Texto
+  View, //Tipo uma div
+  StyleSheet, //CSS
+  Image, //Imagem
+  TouchableOpacity, //Botão clicável
+  Animated, //Animações
+  Dimensions //Pega o tamanho da tela
+} from "react-native";
 
-const { width } = Dimensions.get("window");
+import { 
+  useEffect, // Executa algo automauticamente
+   useRef //Gurda um valor que não reinicia
+  } from "react";
+
+import { useNavigation } from "@react-navigation/native"; //Permite navegar entre telas
+import { NativeStackNavigationProp } from "@react-navigation/native-stack"; //Isso é o Typescript ajudando a dizer quais telas existem(tipagem)
+import { Ionicons } from "@expo/vector-icons"; //Icones
+import { RootStackParamList } from "../App"; //Lista de telas definida no App
+
+const { width } = Dimensions.get("window"); //Pega a dimensão da tela(responsivo)
 
 export default function Inicial() {
+  // Essa parte basicamente diz que essa tela é a Inicial(que definimos no App) e ela usa o "mapa"(RootStackParamLista)
   type NavigationProps = NativeStackNavigationProp<RootStackParamList, "Inicial">
+  //Aqui ele cria um objeto navigation que use esse "mapa", sabendo para onde ir e o que preciso enviar, por exemplo na página Leitor definimos que precisa de ao meno um livro
   const navigation = useNavigation<NavigationProps>();
 
   // Animação
+  //Começa em 0 e vai controlar o movimento vertical(Y)
   const handY = useRef(new Animated.Value(0)).current;
 
+  //O useEffect garante que roda automaticamente quando a tela abrir
   useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(handY, {
-          toValue:15,
-          duration: 600,
-          useNativeDriver: true,
+    Animated.loop( //Em loop(autoexplicativo)
+      Animated.sequence([ //Essa é a sequência da animação
+        Animated.timing(handY, { //Aqui vai de 0
+          toValue:15, //para 15
+          duration: 600, // em 600 ms
+          useNativeDriver: true, //Faz a animação rodar direto no celular(lado nativo). Importante para fluidez da animação
         }),
-        Animated.timing(handY, {
-          toValue:0,
-          duration: 600,
+        Animated.timing(handY, { //Esse é o oposto, sai do 15
+          toValue:0, // E volta para o 0
+          duration: 600, // em 600ms
           useNativeDriver: true,
         }),
       ])
-    ).start();
-  }, []);
+    ).start(); //Começa a animação
+  }, []); //o [] garante que rode só uma vez, quando a tela abre 
 
   return (
     <View style={styles.container}>
@@ -76,12 +93,12 @@ export default function Inicial() {
 
         {/* Mudar textura depois ta feio */}
         {/* Triângulo */}
-        <TouchableOpacity onPress={()=> navigation.navigate('Login')}>
+        <TouchableOpacity onPress={()=> navigation.navigate('Login')}> {/*Quando pressionado vai para o Login */}
           <View style={styles.triangleShadow}>
           <View
           style={[styles.triangle,
-            {
-             borderLeftWidth: width/2,
+            { //Garante que o triângulo ocupe a largura inteira da tela, indepedente do celular
+             borderLeftWidth: width/2, //
              borderRightWidth: width/2
           }
           ]}
@@ -99,18 +116,18 @@ export default function Inicial() {
 const styles = StyleSheet.create({
 
   container: {
-    flex: 1,
+    flex: 1, //Ocupa toda tela
   },
 
   top: {
-    flex: 4,
+    flex: 4, //Ocupa mais espaço (parte de cima maior)
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#8B4513",
   },
 
   bottom: {
-    flex: 2,
+    flex: 2,//Ocupa menos espaço (parte de baixo menor)
     alignItems: "center",
     justifyContent: "flex-start",
      backgroundColor: "#00897B",
