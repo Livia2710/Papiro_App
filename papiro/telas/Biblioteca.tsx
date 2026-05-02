@@ -68,7 +68,7 @@ export default function Biblioteca() {
             {/* ❤️ Favorito */}
             <TouchableOpacity onPress={() => toggleFavorito(livro.id)}>
               <Ionicons
-                name={favoritos.includes(livro.id) ? "heart" : "heart-outline"}
+                name={favoritos.includes(livro.id) ? "cafe" : "cafe-outline"}
                 size={24}
                 color={favoritos.includes(livro.id) ? "#8B4513" : "#5A3A2B"}
               />

@@ -45,7 +45,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>(); //Navegação pr
 // Menu Principal com abas
 function Menu(){
   return (
-    <Tab.Navigator //O container onde fica as abas
+    <Tab.Navigator id={undefined} //O container onde fica as abas
       screenOptions={({route})=>({ // Configurações da tela
         //Esses são os parametros dos icones(foco, cor e tamanho)
         tabBarIcon:({focused, color, size})=>{
@@ -54,23 +54,19 @@ function Menu(){
           //Define o ícone de cada aba dinamicamente
           //Se estiver na tela "Sobre" vai ser o icone person, senão, vai mostrar o person-outline
           //Ou seja escolhe o nome baseado no nome da tela e muda quanso está selecionado(focused)
-          if(route.name==="Sobre"){
+          if(route.name === "Sobre"){
             iconName = focused ? 'person' : "person-outline";
           }
-          else if(route.name==="Home"){
+          else if(route.name === "Home"){
             iconName = focused ? 'home' : "home-outline";
           }
-          else if(route.name==="Biblioteca"){
+          else if(route.name === "Biblioteca"){
             iconName = focused ? 'book' : "book-outline";
           }
 
           return (
             // Parte visual
-            <View 
-            style={{ //Centrelizando
-              alignItems:"center", 
-              justifyContent:"center"}}
-            >
+            <View style={{alignItems:"center", justifyContent:"center"}}>
               {/* Monstra os icone que mudam graça ao icoName */}
             <Ionicons name={iconName} size={size} color={color} />
 
@@ -85,14 +81,11 @@ function Menu(){
                   backgroundColor:"#D4A373"
                 }}
               />
-
           </View>
-
-          )
+          );
         },
 
         headerShown:false, //Remove o cabeçalho padrão(topo branco)
-
         tabBarActiveTintColor:'#D4A373', //Cor dos icone ativos(selecionados)
         tabBarInactiveTintColor:'#D4A373', //Cor dos icones desativados
 
@@ -101,11 +94,7 @@ function Menu(){
           backgroundColor:"#8B4513", //Cor de fundo
           borderTopLeftRadius:20, //Borda arrendoda
           borderTopRightRadius:20,
-<<<<<<< Updated upstream
           height: 80,
-=======
-          height: 65, //Altura do menu inferior
->>>>>>> Stashed changes
           borderTopWidth:0,
           position:"absolute", 
           overflow:"hidden" //Esconde as partes indesejados, como aquelas partes brancas
@@ -163,12 +152,12 @@ export default function App() {
     <NavigationContainer> 
   
       {/* Ordem das telas */}
-      <Stack.Navigator screenOptions={{ headerShown:false}}>
-          <Stack.Screen name='Inicial' component={Inicial}/>  {/* 1º abre o inicial*/}
-          <Stack.Screen name='Login' component={Login}/>  {/* 2º Vai para o Login*/}
-          <Stack.Screen name='Menu' component={Menu}/> {/* 3º Entra no Menu com as abas Home(aparece nesse) + Biblioteca + Sobre */}
-          <Stack.Screen name='Detalhe' component={Detalhe}/>  {/* Pode ir */}
-           <Stack.Screen name='Leitor' component={Leitor}/> {/* Pode ir */}
+      <Stack.Navigator id={undefined}  screenOptions={{ headerShown:false}}>
+          <Stack.Screen name='Inicial' component={Inicial}/> 
+          <Stack.Screen name='Login' component={Login}/> 
+          <Stack.Screen name='Menu' component={Menu}/> 
+          <Stack.Screen name='Detalhe' component={Detalhe}/>
+           <Stack.Screen name='Leitor' component={Leitor}/> 
       </Stack.Navigator>
     </NavigationContainer>
   )
