@@ -23,6 +23,8 @@ const AVATARES: { id: string; image: ImageSourcePropType }[] = [
   { id: "1",  image: require("../assets/avatares/avatar1.jpg") },
   { id: "2", image: require("../assets/avatares/avatar2.jpg") },
   { id: "3", image: require("../assets/avatares/avatar3.jpg") },
+  { id: "4", image: require("../assets/avatares/avatar4.jpg") },
+
   ];
 
 export default function Perfil() {
@@ -159,6 +161,8 @@ export default function Perfil() {
         ]}
         showsVerticalScrollIndicator={false}
       >
+         <View style={styles.topArea}>
+        <View style={styles.avatarCarouselShell} />
         <ImageBackground
           source={require("../assets/couro.png")}
           resizeMode="repeat"
@@ -176,91 +180,87 @@ export default function Perfil() {
           </View>
         </ImageBackground>
 
-        <View style={styles.profileArea}>
-          <View style={styles.avatarCarouselShell}>
-  <View pointerEvents="none" style={styles.avatarCenterCutout} />
+        <Animated.FlatList
+          data={AVATARES}
+          keyExtractor={(item) => item.id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={AVATAR_ITEM_SIZE}
+          decelerationRate="fast"
+          style={styles.avatarList}
+          contentContainerStyle={{
+            paddingHorizontal: (width - AVATAR_SIZE) / 2,
+          }}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+            { useNativeDriver: true }
+          )}
+          onMomentumScrollEnd={async (event) => {
+            const index = Math.round(event.nativeEvent.contentOffset.x / AVATAR_ITEM_SIZE);
+            const avatar = AVATARES[index];
 
-  <Animated.FlatList
-    data={AVATARES}
-    keyExtractor={(item) => item.id}
-    horizontal
-    showsHorizontalScrollIndicator={false}
-    snapToInterval={AVATAR_ITEM_SIZE}
-    decelerationRate="fast"
-    contentContainerStyle={{
-      paddingHorizontal: (width - AVATAR_SIZE) / 2,
-    }}
-    onScroll={Animated.event(
-      [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-      { useNativeDriver: true }
-    )}
-    onMomentumScrollEnd={async (event) => {
-      const index = Math.round(event.nativeEvent.contentOffset.x / AVATAR_ITEM_SIZE);
-      const avatar = AVATARES[index];
+            if (avatar) {
+              setAvatarSelecionado(avatar);
+              setFotoPerfil(null);
+              await AsyncStorage.setItem(AVATAR_PERFIL_KEY, avatar.id);
+              await AsyncStorage.removeItem(FOTO_PERFIL_KEY);
+            }
+          }}
+          renderItem={({ item, index }) => {
+            const inputRange = [
+              (index - 1) * AVATAR_ITEM_SIZE,
+              index * AVATAR_ITEM_SIZE,
+              (index + 1) * AVATAR_ITEM_SIZE,
+            ];
 
-      if (avatar) {
-        setAvatarSelecionado(avatar);
-        setFotoPerfil(null);
-        await AsyncStorage.setItem(AVATAR_PERFIL_KEY, avatar.id);
-        await AsyncStorage.removeItem(FOTO_PERFIL_KEY);
-      }
-    }}
-    renderItem={({ item, index }) => {
-      const inputRange = [
-        (index - 1) * AVATAR_ITEM_SIZE,
-        index * AVATAR_ITEM_SIZE,
-        (index + 1) * AVATAR_ITEM_SIZE,
-      ];
+            const scale = scrollX.interpolate({
+              inputRange,
+              outputRange: [0.72, 1.32, 0.72],
+              extrapolate: "clamp",
+            });
 
-      const scale = scrollX.interpolate({
-        inputRange,
-        outputRange: [0.72, 1.42, 0.72],
-        extrapolate: "clamp",
-      });
+            const opacity = scrollX.interpolate({
+              inputRange,
+              outputRange: [0.45, 1, 0.45],
+              extrapolate: "clamp",
+            });
 
-      const opacity = scrollX.interpolate({
-        inputRange,
-        outputRange: [0.45, 1, 0.45],
-        extrapolate: "clamp",
-      });
+            const badgeOpacity = scrollX.interpolate({
+              inputRange,
+              outputRange: [0, 1, 0],
+              extrapolate: "clamp",
+            });
 
-      const badgeOpacity = scrollX.interpolate({
-        inputRange,
-        outputRange: [0, 1, 0],
-        extrapolate: "clamp",
-      });
+            return (
+              <Animated.View
+                style={[
+                  styles.avatarOption,
+                  {
+                    transform: [{ scale }],
+                    opacity,
+                  },
+                ]}
+              >
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={abrirOpcoesDeFoto}
+                  style={styles.avatarTouchable}
+                >
+                  <Image
+                    source={fotoPerfil && item.id === avatarSelecionado.id ? { uri: fotoPerfil } : item.image}
+                    style={styles.avatarOptionImage}
+                  />
 
-      return (
-        <Animated.View
-          style={[
-            styles.avatarOption,
-            {
-              transform: [{ scale }],
-              opacity,
-            },
-          ]}
-        >
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={abrirOpcoesDeFoto}
-            style={styles.avatarTouchable}
-          >
-            <Image
-              source={fotoPerfil && item.id === avatarSelecionado.id ? { uri: fotoPerfil } : item.image}
-              style={styles.avatarOptionImage}
-            />
+                  <Animated.View style={[styles.cameraBadge, { opacity: badgeOpacity }]}>
+                    <Ionicons name="camera" size={14} color="#F8EDE5" />
+                  </Animated.View>
+                </TouchableOpacity>
+              </Animated.View>
+            );
+          }}
+        />
+      </View>
 
-            <Animated.View style={[styles.cameraBadge, { opacity: badgeOpacity }]}>
-              <Ionicons name="camera" size={14} color="#F8EDE5" />
-            </Animated.View>
-          </TouchableOpacity>
-        </Animated.View>
-      );
-    }}
-  />
-</View>
-
-        </View>
 
         <View style={styles.statsCard}>
           <View style={styles.statItem}>
@@ -347,12 +347,17 @@ const styles = StyleSheet.create({
   },
 
   header: {
-    height: 245,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 215,
     backgroundColor: "#5A3A2B",
     paddingHorizontal: 48,
-    borderBottomLeftRadius: 180,
-    borderBottomRightRadius: 180,
+    borderBottomLeftRadius: 150,
+    borderBottomRightRadius: 150,
     overflow: "hidden",
+    zIndex: 2,
   },
 
   headerTop: {
@@ -384,10 +389,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  profileArea: {
-    alignItems: "center",
-    marginTop: -36,
-    zIndex: 5,
+  topArea: {
+    height: 300,
+    position: "relative",
+    backgroundColor: "#F6E2D2",
+    overflow: "visible",
+  
   },
   statsCard: {
     marginTop: 24,
@@ -433,6 +440,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    
   },
 
   sectionTitle: {
@@ -563,8 +571,8 @@ avatarOption: {
   width: AVATAR_ITEM_SIZE,
   alignItems: "center",
   justifyContent: "center",
-  height: 138,
-  zIndex:2,
+  height: 145,
+  
 },
 
 avatarOptionImage: {
@@ -574,38 +582,38 @@ avatarOptionImage: {
   borderWidth: 3,
   borderColor: "#D4A373",
   backgroundColor: "#F8EDE5",
+  
 },
 
 avatarCarouselShell: {
-  width: "100%",
-  height: 190,
-  paddingTop: 56,
+  position: "absolute",
+  left: -40,
+  right: -40,
+  bottom: 0,
+  height: 210,
   backgroundColor: "#F8EDE5",
-  borderTopLeftRadius: 0,
-  borderTopRightRadius: 0,
-  borderBottomLeftRadius: 78,
-  borderBottomRightRadius: 78,
-  overflow: "visible",
-  zIndex:1,
+  borderBottomLeftRadius: 220,
+  borderBottomRightRadius: 220,
+  zIndex: 1,
+  
 },
 
 avatarTouchable: {
   width: AVATAR_SIZE,
   height: AVATAR_SIZE,
   borderRadius: AVATAR_SIZE / 2,
+  
 },
 
-avatarCenterCutout: {
+avatarList: {
   position: "absolute",
-  top: -44,
-  alignSelf: "center",
-  width: 150,
-  height: 150,
-  borderRadius: 71,
-  backgroundColor: "#F8EDE5",
-  zIndex: 0,
+  left: 0,
+  right: 0,
+  height: 145,
+  bottom: 8,
+  zIndex: 3,
+ 
 },
-
 
 });
 
