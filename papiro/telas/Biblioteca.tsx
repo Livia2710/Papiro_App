@@ -1,13 +1,15 @@
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from "react-native";
 import { useState } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
 // data
 import { livros } from "../data/livros";
 
 export default function Biblioteca() {
-  
-
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
   const [favoritos, setFavoritos] = useState<string[]>([]);
   const [aba, setAba] = useState<"recentes" | "favoritos">("recentes");
 
@@ -26,9 +28,7 @@ export default function Biblioteca() {
     : livros;
 
   return (
-    <ScrollView style={styles.container}
-    contentContainerStyle={{ paddingBottom: 40 }}
-  showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content,{ paddingBottom: insets.bottom + 120 }]} showsVerticalScrollIndicator={false}>
 
       {/* Título */}
       <Text style={styles.title}>Minha Biblioteca</Text>
@@ -52,30 +52,39 @@ export default function Biblioteca() {
 
       {/* Lista */}
       <View style={styles.list}>
-        {lista.map((livro) => (
-          <View key={livro.id} style={styles.item}>
-
-            {/* Capa */}
-            <Image source={livro.image} style={styles.image} />
-
-            {/* Infos */}
-            <View style={styles.info}>
-              <Text style={styles.bookTitle}>{livro.title}</Text>
-              <Text style={styles.author}>{livro.author}</Text>
-              <Text style={styles.rating}>⭐ {livro.rating}</Text>
-            </View>
-
-            {/* ❤️ Favorito */}
-            <TouchableOpacity onPress={() => toggleFavorito(livro.id)}>
-              <Ionicons
-                name={favoritos.includes(livro.id) ? "cafe" : "cafe-outline"}
-                size={24}
-                color={favoritos.includes(livro.id) ? "#8B4513" : "#5A3A2B"}
-              />
-            </TouchableOpacity>
-
+        {lista.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="cafe-outline" size={34} color="#8B4513" />
+            <Text style={styles.emptyTitle}>Nenhum favorito ainda</Text>
+            <Text style={styles.emptyText}>
+              Favorite algum livro para ele aparecer aqui.
+            </Text>
           </View>
-        ))}
+        ) : (
+          lista.map((livro) => (
+            <TouchableOpacity key={livro.id} style={styles.item} onPress={() => navigation.navigate("Leitor", { livro })}>
+             
+              <Image source={livro.image} style={styles.image} />
+
+              <View style={styles.info}>
+                <Text style={styles.bookTitle}>{livro.title}</Text>
+                <Text style={styles.author}>{livro.author}</Text>
+                <Text style={styles.rating}>⭐ {livro.rating}</Text>
+              </View>
+
+              <TouchableOpacity onPress={(event) => {
+                event.stopPropagation();
+                toggleFavorito(livro.id);
+              }}>
+                <Ionicons
+                  name={favoritos.includes(livro.id) ? "cafe" : "cafe-outline"}
+                  size={24}
+                  color={favoritos.includes(livro.id) ? "#8B4513" : "#5A3A2B"}
+                />
+              </TouchableOpacity>
+            </TouchableOpacity>
+          ))
+        )}
       </View>
 
     </ScrollView>
@@ -85,8 +94,11 @@ export default function Biblioteca() {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#F6E2D2",
+  },
+
+  content: {
     padding: 15,
-    paddingTop:100,
+    paddingTop: 100,
   },
 
   title: {
@@ -164,4 +176,25 @@ const styles = StyleSheet.create({
   rating: {
     fontSize: 12,
   },
+
+  emptyContainer: {
+  alignItems: "center",
+  paddingVertical: 30,
+  paddingHorizontal: 20,
+},
+
+emptyTitle: {
+  marginTop: 10,
+  fontSize: 16,
+  color: "#5A3A2B",
+  fontFamily: "Merriweather_700Bold",
+},
+
+emptyText: {
+  marginTop: 6,
+  fontSize: 13,
+  color: "#8B4513",
+  textAlign: "center",
+  fontFamily: "Merriweather_400Regular",
+},
 });

@@ -2197,7 +2197,7 @@ E com essa canção nos ouvidos, Bilbo caiu em um sono inquieto, cheio de sonhos
     image: require("../assets/capas/capa_menina.jpg"),
 
     description:
-      "A história do lendário vampiro Conde Drácula e seu encontro com Jonathan Harker.",
+      "Traços de uma sobrevivente: a mãe comunista, perseguida pelo nazismo, envia Liesel e o irmão para o subúrbio pobre de uma cidade alemã, onde um casal se dispõe a adotá-los por dinheiro. O garoto morre no trajeto e é enterrado por um coveiro que deixa cair um livro na neve. É o primeiro de uma série que a menina vai surrupiar ao longo dos anos. O único vínculo com a família é esta obra, que ela ainda não sabe ler. Assombrada por pesadelos, ela compensa o medo e a solidão das noites com a conivência do pai adotivo, um pintor de parede bonachão que lhe dá lições de leitura. Alfabetizada sob vistas grossas da madrasta, Liesel canaliza urgências para a literatura. Em tempos de livros incendiados, ela os furta, ou os lê na biblioteca do prefeito da cidade.",
 
     chapter1: `CHEGADA À RUA HIMMEL
 

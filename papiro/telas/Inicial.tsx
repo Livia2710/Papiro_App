@@ -1,17 +1,6 @@
-import { ImageBackground, //Imagem de Fundo
-  Text, //Texto
-  View, //Tipo uma div
-  StyleSheet, //CSS
-  Image, //Imagem
-  TouchableOpacity, //Botão clicável
-  Animated, //Animações
-  Dimensions //Pega o tamanho da tela
-} from "react-native";
+import { ImageBackground, Text, View, StyleSheet, Image, TouchableOpacity, Animated, Dimensions } from "react-native";
 
-import { 
-  useEffect, // Executa algo automauticamente
-   useRef //Gurda um valor que não reinicia
-  } from "react";
+import { useEffect, useRef } from "react";
 
 import { useNavigation } from "@react-navigation/native"; //Permite navegar entre telas
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"; //Isso é o Typescript ajudando a dizer quais telas existem(tipagem)

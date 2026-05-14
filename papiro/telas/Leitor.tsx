@@ -1,132 +1,196 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-
-// O Audio
 import * as Speech from "expo-speech";
 
 export default function Leitor() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
-  const { livro } = route.params;
+  const insets = useSafeAreaInsets();
+
+  const { livro } = route.params; //Pega o livro enviado pela tela Biblioteca
 
   // Estados corrigidos com tipagem
   const [fontSize, setFontSize] = useState<number>(16);
   const [darkMode, setDarkMode] = useState<boolean>(false);
   const [showMenu, setShowMenu] = useState<boolean>(false);
+  const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
+  const [voices, setVoices] = useState<Speech.Voice[]>([]);
+  const [selectedVoice, setSelectedVoice] = useState<string | undefined>(undefined);
 
-  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  const shouldSpeakRef = useRef(false); 
+
+  const textoLivro = livro.chapter1 ?? "Prévia indisponível para este livro"; 
+
+  const theme = {
+    background: isSpeaking ? darkMode ? "#3F2A22" : "#FFF3E8" : darkMode ? "#5A3A2B": "#F8EDE5",
+    text: darkMode ? "#F8EDE5" : "#5A3A2B",
+    accent: isSpeaking ? "#D4A373" : darkMode ? "#D4A373" : "#00897B",
+    panel: darkMode ? "#8B4513" : "#D4A373",
+  }
+
+  useEffect(() => {
+    return () => {
+      shouldSpeakRef.current = false;
+      Speech.stop();
+    };
+  }, []);
+
+  // pt-br-x-pte-local <= lembrar essa voz
+
+  useEffect(() => {
+  async function carregarVozes() {
+    const availableVoices = await Speech.getAvailableVoicesAsync();
+
+    const ptBrVoices = availableVoices.filter((voice) =>
+      voice.language?.toLowerCase().startsWith("pt-br")   
+   );
+
+  console.log(
+  "VOZES PT-BR:",
+  ptBrVoices.map((voice) => ({
+    name: voice.name,
+    identifier: voice.identifier,
+    language: voice.language,
+    quality: voice.quality,
+  }))
+);
+
+    setVoices(ptBrVoices);
+
+    const melhorVoz =
+      ptBrVoices.find((voice) => voice.identifier === "pt-br-x-pte-local") ??
+      ptBrVoices[0];
+
+    if (melhorVoz) {
+      setSelectedVoice(melhorVoz.identifier);
+    }
+  }
+
+  carregarVozes();
+}, []);
+
  
   function dividirTexto(texto: string){
-    return texto.match(/.{1,300}/g) || [];
+    return texto.match(/[\s\S]{1,1000}(?=\s|$)/g) || [];
   }
 
    async function falarTexto() {
+    shouldSpeakRef.current = true;
     setIsSpeaking(true); 
 
-    const partes = dividirTexto(livro.chapter1);
+    await Speech.stop(); // Para qualquer fala anterior
+
+    const partes = dividirTexto(textoLivro);
 
     for(let i = 0; i < partes.length; i++){
-      if(!isSpeaking) break;
+      if(!shouldSpeakRef.current) break;
 
       await new Promise<void>((resolve) => {
         Speech.speak(partes[i], {
         language: "pt-BR",
-        rate: 0.9, //velocidade
+        voice: selectedVoice,
+        rate: 0.95, //velocidade
         pitch: 1.0, //tom da voz
         onDone: () => resolve(),
         onStopped: () =>resolve(),
+        onError: () => resolve(),
         });
       });
     }
-
+    shouldSpeakRef.current = false;
     setIsSpeaking(false);
   }
 
   function pararAudio(){
-    Speech.stop();
+    shouldSpeakRef.current = false;
+     Speech.stop();
     setIsSpeaking(false);
   }
 
   return (
-    <View style={[
-      styles.container,
-      { backgroundColor: darkMode ? "#5A3A2B" : "#F8EDE5" }
-    ]}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
 
       {/* Botão de Voltar */}
-      <TouchableOpacity style={styles.back} onPress={() => navigation.goBack()}>
-        <Ionicons name='arrow-back' size={24} color={darkMode ? "#F8EDE5" : "#5A3A2B"} />
+      <TouchableOpacity style={[styles.back, {top: insets.top + 20}]} onPress={() => navigation.goBack()}>
+        <Ionicons name='arrow-back' size={24} color={theme.text} />
       </TouchableOpacity>
 
       {/* Modo Escuro/Claro */}
-      <TouchableOpacity 
-        style={styles.theme}
-        onPress={() => setDarkMode(!darkMode)}
-      >
-        <Ionicons name={darkMode ? "sunny-outline" : "moon-outline"} size={24} color={darkMode ? "#F8EDE5" : "#5A3A2B"} />
+      <TouchableOpacity style={[styles.theme, {top: insets.top + 20}]} onPress={() => setDarkMode(!darkMode)} >
+        <Ionicons name={darkMode ? "sunny-outline" : "moon-outline"} size={24} color={theme.text} />
       </TouchableOpacity>
 
       {/* Configurações */}
-      <TouchableOpacity 
-        style={styles.settings}
-        onPress={() => setShowMenu(!showMenu)}
-      >
-        <Ionicons name="settings-outline" size={24} color={darkMode ? "#F8EDE5" : "#5A3A2B"} />
+      <TouchableOpacity style={[styles.settings, {top: insets.top + 20}]} onPress={() => setShowMenu(!showMenu)}>
+        <Ionicons name="settings-outline" size={24} color={theme.text} />
       </TouchableOpacity>
 
       {/* Audio */}
-      <TouchableOpacity style={styles.audio}
-      onPress={isSpeaking ? pararAudio : falarTexto}
-      onLongPress={pararAudio} //segura para parar
-      >
-        <Ionicons name={isSpeaking ? "pause" : "volume-high-outline"} size={24} color={darkMode ? "#F8EDE5" : "#5A3A2B"} />
+      <TouchableOpacity style={[styles.audio, {top: insets.top + 20}]} onPress={isSpeaking ? pararAudio : falarTexto}>
+        <Ionicons name={isSpeaking ? "pause" : "volume-high-outline"} size={24} color={theme.text} />
       </TouchableOpacity>
 
       {/* Painel */}
       {showMenu && (
-        <View style={styles.menu}>
+        <View style={[styles.menu, {top: insets.top + 58, backgroundColor: theme.panel}]}>
 
           {/* Fonte */}
           <View style={styles.fontRow}>
-          <TouchableOpacity onPress={() => setFontSize(14)}>
-            <Ionicons name="text-outline" size={18} color="#F8EDE5" />
+          <TouchableOpacity style={[styles.fontButton, fontSize === 14 && styles.activeFontButton]} onPress={() => setFontSize(14)}>
+            <Text style={styles.fontButtonText}>A-</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => setFontSize(18)}>
-             <Ionicons name="text" size={22} color="#F8EDE5" />
+          <TouchableOpacity style={[styles.fontButton, fontSize === 18 && styles.activeFontButton]} onPress={() => setFontSize(18)}>
+             <Text style={styles.fontButtonText}>A</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => setFontSize(22)}>
-             <Ionicons name="text" size={24} color="#F8EDE5" />
+          <TouchableOpacity style={[styles.fontButton, fontSize === 22 && styles.activeFontButton]} onPress={() => setFontSize(22)}>
+             <Text style={styles.fontButtonText}>A++</Text>
           </TouchableOpacity>
 
            </View>
+
+            {voices.length > 0 && (
+            <View style={styles.voiceList}>
+              {voices.slice(0, 3).map((voice) => (
+                <TouchableOpacity
+                  key={voice.identifier}
+                  style={[
+                    styles.voiceButton,
+                    selectedVoice === voice.identifier && styles.activeFontButton,
+                  ]}
+                  onPress={() => setSelectedVoice(voice.identifier)}
+                >
+                  <Text style={styles.voiceButtonText}>
+                    {voice.name || voice.language}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
       )}
+
       {/* Conteúdo */}
       <ScrollView
         style={styles.reader}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={[styles.readerContent, { paddingTop: insets.top + 90, paddingBottom: insets.bottom + 90, }]}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={[
-          styles.title,
-          { color: darkMode ? "#F8EDE5" : "#5A3A2B" }
-        ]}>
+        <Text style={[styles.title,{ color: theme.text }]}>
           {livro.title}
         </Text>
 
-        <Text style={[
-          styles.chapter,
-          { color: darkMode ? "#D4A373" : "#00897B" }
-        ]}>
-          Capítulo 1
+         <Text style={[styles.chapter,{ color: theme.accent }]}>
+           Capítulo 1
         </Text>
 
         {/*  TEXTO COM PARÁGRAFOS */}
-        {livro.chapter1
+        {textoLivro
           .split("\n\n")
           .map((p: string, index: number) => (
             <Text
@@ -136,7 +200,7 @@ export default function Leitor() {
                 {
                   fontSize: fontSize,
                   lineHeight: fontSize * 1.6,
-                  color: darkMode ? "#F8EDE5" : "#5A3A2B",
+                  color: theme.text,
                 }
               ]}
             >
@@ -146,20 +210,14 @@ export default function Leitor() {
 
         {/*  Final */}
         <View style={styles.end}>
-          <Text style={[
-            styles.endText,
-            { color: darkMode ? "#D4A373" : "#5A3A2B" }
-          ]}>
+          <Text style={[styles.endText,{ color: theme.accent }]}>
             Você chegou ao fim da prévia
           </Text>
 
           <TouchableOpacity style={styles.buyButton}>
-            <Text style={styles.buyText}>
-              Comprar para continuar
-            </Text>
+            <Text style={styles.buyText}>Comprar para continuar</Text>
           </TouchableOpacity>
         </View>
-
       </ScrollView>
     </View>
   );
@@ -171,42 +229,55 @@ const styles = StyleSheet.create({
 
   back: {
     position: "absolute",
-    top: 70,
     left: 20,
     zIndex: 10,
   },
    theme: {
     position: "absolute",
-    top: 50,
     right: 100,
     zIndex: 10,
   },
 
   settings: {
     position: "absolute",
-    top: 70,
     right: 60,
     zIndex: 10,
   },
 
   fontRow: {
     flexDirection:"row",
-    justifyContent: "space-between",
+    // justifyContent: "space-between",
     gap: 15,
+  },
+
+  fontButton: {
+    minWidth: 38,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    backgroundColor: "#8B4513",
+    borderRadius: 8,
+    alignItems: "center",
+  },
+
+  activeFontButton: {
+    backgroundColor: "#2a9d8f",
+  },
+
+  fontButtonText: {
+    color: "#F8EDE5",
+    fontSize: 14,
+    fontFamily: "Merriweather_700Bold",
   },
 
   audio: {
     position: "absolute",
-    top: 70,
     right: 20,
     zIndex: 10,
   },
 
   menu: {
     position: "absolute",
-    top: 90,
     right: 20,
-    backgroundColor: "#D4A373",
     padding: 10,
     borderRadius: 10,
     zIndex: 10,
@@ -222,7 +293,10 @@ const styles = StyleSheet.create({
   },
 
   reader: {
-    paddingTop: 100,
+    flex: 1,
+  },
+
+  readerContent: {
     paddingHorizontal: 20,
   },
 
@@ -235,11 +309,13 @@ const styles = StyleSheet.create({
   chapter: {
     fontSize: 18,
     marginBottom: 15,
+    fontFamily: "Merriweather_400Regular",
   },
 
   text: {
     textAlign: "justify",
     marginBottom: 20,
+    fontFamily:"Merriweather_400Regular",
   },
 
   end: {
@@ -250,6 +326,7 @@ const styles = StyleSheet.create({
   endText: {
     fontSize: 14,
     marginBottom: 10,
+    fontFamily: "Merriweather_400Regular",
   },
 
   buyButton: {
@@ -265,4 +342,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Merriweather_700Bold",
   },
+
+  voiceList: {
+  marginTop: 10,
+  gap: 8,
+  },
+
+  voiceButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: "#8B4513",
+  },
+
+  voiceButtonText: {
+    color: "#F8EDE5",
+    fontSize: 12,
+    fontFamily: "Merriweather_400Regular",
+  },
+
 });

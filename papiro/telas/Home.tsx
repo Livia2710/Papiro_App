@@ -1,11 +1,10 @@
-import { ScrollView, //Permite rolar a tela(vertical ou horizontal)
-  StyleSheet, Text, View, Image, TextInput, TouchableOpacity } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, Image, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { RootStackParamList } from "../App"; //Lista de telas definida no App
-import { NativeStackNavigationProp } from "@react-navigation/native-stack"; //Isso é o Typescript ajudando a dizer quais telas existem(tipagem)
-
-import { useState } from 'react'; //Guarda valores que mudam na tela
+import { RootStackParamList } from "../App"; 
+import { NativeStackNavigationProp } from "@react-navigation/native-stack"; 
+import {useSafeAreaInsets} from "react-native-safe-area-context";
+import { useState } from 'react'; 
 
 // data
 import { livros } from "../data/livros";
@@ -15,9 +14,10 @@ type NavigationProps = NativeStackNavigationProp<RootStackParamList> //Não espe
 
 export default function Home() {
  const navigation = useNavigation<NavigationProps>(); 
+ const insets = useSafeAreaInsets(); //Pega as bordas do celular (ex: onde tem o notch)
 
-  const [search, setSearch] = useState(""); //Guarda o texto digitado na busca
-  const [selectedCategory, setselectedCategory] = useState<string | null>(null); //Pode ser um String ou null
+  const [search, setSearch] = useState(""); 
+  const [selectedCategory, setselectedCategory] = useState<string | null>(null);
 
   // Filtro
   const filtroLivros = livros.filter((livro) => {
@@ -35,7 +35,7 @@ export default function Home() {
 
   return (
     //Tela inteira rolável
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 120 }]} showsVerticalScrollIndicator={false}>
       
      {/* Buscar */}
       <View style={styles.searchContainer}>
@@ -119,6 +119,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F6E2D2",
+  },
+
+  content:{
     padding: 15,
     paddingTop:100,
   },
