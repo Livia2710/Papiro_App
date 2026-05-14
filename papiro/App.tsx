@@ -10,7 +10,7 @@ export type RootStackParamList = {
   Detalhe: {livro:Livro};
   Leitor: { livro: Livro }; // Recebe um objeto livro obrigatoriamente
   Menu: {
-    screen?: 'Home' | 'Biblioteca' | 'Sobre'; //Define qual aba abrir dentro do menu
+    screen?: 'Home' | 'Biblioteca' | 'Perfil'; //Define qual aba abrir dentro do menu
   };
 };
 
@@ -24,7 +24,7 @@ import { ImageBackground, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons'; //Ícones
 
 // Telas
-import Sobre from "./telas/Sobre";
+import Sobre from "./telas/Perfil";
 import Home  from "./telas/Home";
 import Inicial from './telas/Inicial';
 import Login from './telas/Login';
@@ -54,7 +54,7 @@ function Menu(){
           //Define o ícone de cada aba dinamicamente
           //Se estiver na tela "Sobre" vai ser o icone person, senão, vai mostrar o person-outline
           //Ou seja escolhe o nome baseado no nome da tela e muda quanso está selecionado(focused)
-          if(route.name === "Sobre"){
+          if(route.name === "Perfil"){
             iconName = focused ? 'person' : "person-outline";
           }
           else if(route.name === "Home"){
@@ -94,7 +94,7 @@ function Menu(){
           backgroundColor:"#8B4513", //Cor de fundo
           borderTopLeftRadius:20, //Borda arrendoda
           borderTopRightRadius:20,
-          height: 80,
+          height: 100,
           borderTopWidth:0,
           position:"absolute", 
           overflow:"hidden" //Esconde as partes indesejados, como aquelas partes brancas
@@ -124,7 +124,7 @@ function Menu(){
       {/* São as abas do menu inferior */}
       <Tab.Screen name="Home" component={Home}/>
       <Tab.Screen name="Biblioteca" component={Biblioteca}/>
-      <Tab.Screen name="Sobre" component={Sobre}/>
+      <Tab.Screen name="Perfil" component={Sobre}/>
     </Tab.Navigator>
   )
 }

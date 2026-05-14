@@ -5,6 +5,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Speech from "expo-speech";
 
+type VozPreferida = {
+  label: string;
+  identifier: string;
+};
+
 export default function Leitor() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
@@ -17,20 +22,54 @@ export default function Leitor() {
   const [darkMode, setDarkMode] = useState<boolean>(false);
   const [showMenu, setShowMenu] = useState<boolean>(false);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
-  const [voices, setVoices] = useState<Speech.Voice[]>([]);
+  const [voices, setVoices] = useState<VozPreferida[]>([]);
   const [selectedVoice, setSelectedVoice] = useState<string | undefined>(undefined);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
+  const parteAtualRef = useRef(0);
+
 
 
   const shouldSpeakRef = useRef(false); 
 
   const textoLivro = livro.chapter1 ?? "Prévia indisponível para este livro"; 
+  const readingMode = isSpeaking || isPaused;
 
   const theme = {
-    background: isSpeaking ? darkMode ? "#3F2A22" : "#FFF3E8" : darkMode ? "#5A3A2B": "#F8EDE5",
+    background: readingMode
+      ? darkMode
+        ? "#3F2A22"
+        : "#FFF0D8"
+      : darkMode
+        ? "#5A3A2B"
+        : "#F8EDE5",
+
     text: darkMode ? "#F8EDE5" : "#5A3A2B",
-    accent: isSpeaking ? "#D4A373" : darkMode ? "#D4A373" : "#00897B",
+
+    readerText: readingMode
+      ? darkMode
+        ? "#FFF7ED"
+        : "#7A3E16"
+      : darkMode
+        ? "#F8EDE5"
+        : "#5A3A2B",
+
+    accent: readingMode
+      ? "#D4A373"
+      : darkMode
+        ? "#D4A373"
+        : "#00897B",
+
     panel: darkMode ? "#8B4513" : "#D4A373",
-  }
+  };
+
+
+
+  const VOZES_PREFERIDAS: VozPreferida[] = [
+    { label: "Feminina offline", identifier: "pt-br-x-pte-local" },
+    { label: "Feminina online", identifier: "pt-br-x-pte-network" },
+    { label: "Masculina offline", identifier: "pt-br-x-ptd-local" },
+    { label: "Masculina online", identifier: "pt-br-x-ptd-network" },
+  ];
 
   useEffect(() => {
     return () => {
@@ -45,28 +84,14 @@ export default function Leitor() {
   async function carregarVozes() {
     const availableVoices = await Speech.getAvailableVoicesAsync();
 
-    const ptBrVoices = availableVoices.filter((voice) =>
-      voice.language?.toLowerCase().startsWith("pt-br")   
-   );
+    const vozesPreferidas = VOZES_PREFERIDAS.filter((vozPreferida) =>
+      availableVoices.some((voice) => voice.identifier === vozPreferida.identifier)
+    );
 
-  console.log(
-  "VOZES PT-BR:",
-  ptBrVoices.map((voice) => ({
-    name: voice.name,
-    identifier: voice.identifier,
-    language: voice.language,
-    quality: voice.quality,
-  }))
-);
+     setVoices(vozesPreferidas);
 
-    setVoices(ptBrVoices);
-
-    const melhorVoz =
-      ptBrVoices.find((voice) => voice.identifier === "pt-br-x-pte-local") ??
-      ptBrVoices[0];
-
-    if (melhorVoz) {
-      setSelectedVoice(melhorVoz.identifier);
+    if (vozesPreferidas.length > 0) {
+      setSelectedVoice(vozesPreferidas[0].identifier);
     }
   }
 
@@ -78,16 +103,23 @@ export default function Leitor() {
     return texto.match(/[\s\S]{1,1000}(?=\s|$)/g) || [];
   }
 
-   async function falarTexto() {
+   async function falarTexto(iniciarDoComeco: boolean = false){
     shouldSpeakRef.current = true;
     setIsSpeaking(true); 
+    setIsPaused(false);
 
     await Speech.stop(); // Para qualquer fala anterior
 
     const partes = dividirTexto(textoLivro);
 
-    for(let i = 0; i < partes.length; i++){
+    if(iniciarDoComeco){
+      parteAtualRef.current = 0;
+    }
+
+    for(let i = parteAtualRef.current; i < partes.length; i++){
       if(!shouldSpeakRef.current) break;
+
+      parteAtualRef.current = i;
 
       await new Promise<void>((resolve) => {
         Speech.speak(partes[i], {
@@ -101,6 +133,12 @@ export default function Leitor() {
         });
       });
     }
+
+    if(shouldSpeakRef.current){
+      parteAtualRef.current = 0;
+      setIsPaused(false);
+    }
+
     shouldSpeakRef.current = false;
     setIsSpeaking(false);
   }
@@ -110,6 +148,23 @@ export default function Leitor() {
      Speech.stop();
     setIsSpeaking(false);
   }
+
+  function pausarAudio() {
+  shouldSpeakRef.current = false;
+  Speech.stop();
+  setIsSpeaking(false);
+  setIsPaused(true);
+  }
+
+  function continuarAudio() {
+    falarTexto(false);
+  }
+
+  function reiniciarAudio() {
+    parteAtualRef.current = 0;
+    falarTexto(true);
+  }
+
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -130,8 +185,8 @@ export default function Leitor() {
       </TouchableOpacity>
 
       {/* Audio */}
-      <TouchableOpacity style={[styles.audio, {top: insets.top + 20}]} onPress={isSpeaking ? pararAudio : falarTexto}>
-        <Ionicons name={isSpeaking ? "pause" : "volume-high-outline"} size={24} color={theme.text} />
+      <TouchableOpacity style={[styles.audio, {top: insets.top + 20}]} onPress={isSpeaking ? pausarAudio : isPaused ? continuarAudio : () => falarTexto(true)} onLongPress={reiniciarAudio}>
+        <Ionicons name={isSpeaking ? "pause" :  isPaused ? "play" : "volume-high-outline"} size={24} color={theme.text} />
       </TouchableOpacity>
 
       {/* Painel */}
@@ -156,7 +211,7 @@ export default function Leitor() {
 
             {voices.length > 0 && (
             <View style={styles.voiceList}>
-              {voices.slice(0, 3).map((voice) => (
+              {voices.map((voice, index) => (
                 <TouchableOpacity
                   key={voice.identifier}
                   style={[
@@ -166,7 +221,7 @@ export default function Leitor() {
                   onPress={() => setSelectedVoice(voice.identifier)}
                 >
                   <Text style={styles.voiceButtonText}>
-                    {voice.name || voice.language}
+                    {voice.label}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -177,7 +232,7 @@ export default function Leitor() {
 
       {/* Conteúdo */}
       <ScrollView
-        style={styles.reader}
+        style={[styles.reader, { backgroundColor: theme.background }]}
         contentContainerStyle={[styles.readerContent, { paddingTop: insets.top + 90, paddingBottom: insets.bottom + 90, }]}
         showsVerticalScrollIndicator={false}
       >
@@ -200,7 +255,7 @@ export default function Leitor() {
                 {
                   fontSize: fontSize,
                   lineHeight: fontSize * 1.6,
-                  color: theme.text,
+                  color: theme.readerText,
                 }
               ]}
             >
@@ -246,7 +301,6 @@ const styles = StyleSheet.create({
 
   fontRow: {
     flexDirection:"row",
-    // justifyContent: "space-between",
     gap: 15,
   },
 

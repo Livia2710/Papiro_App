@@ -1,11 +1,12 @@
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
-
-// data
 import { livros } from "../data/livros";
+
+const FAVORITOS_KEY = "@papiro:favoritos";
 
 export default function Biblioteca() {
   const insets = useSafeAreaInsets();
@@ -14,18 +15,28 @@ export default function Biblioteca() {
   const [aba, setAba] = useState<"recentes" | "favoritos">("recentes");
 
   // alternar favorito
-  function toggleFavorito(id: string) {
-    if (favoritos.includes(id)) {
-      setFavoritos(favoritos.filter(fav => fav !== id));
-    } else {
-      setFavoritos([...favoritos, id]);
-    }
+  async function toggleFavorito(id: string) {
+    const novosFavoritos = favoritos.includes(id)
+    ? favoritos.filter((fav) => fav !== id)
+    : [...favoritos, id];
+    setFavoritos(novosFavoritos);
+    await AsyncStorage.setItem(FAVORITOS_KEY, JSON.stringify(novosFavoritos));
   }
 
   // lista exibida
   const lista = aba === "favoritos"
     ? livros.filter((l) => l && favoritos.includes(l.id))
     : livros;
+
+  useEffect(()=> {
+    async function carregarFavoritos() {
+      const favoritosSalvos = await AsyncStorage.getItem(FAVORITOS_KEY);
+      if (favoritosSalvos) {
+        setFavoritos(JSON.parse(favoritosSalvos));
+      }
+    }
+    carregarFavoritos();
+}, []);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content,{ paddingBottom: insets.bottom + 120 }]} showsVerticalScrollIndicator={false}>
