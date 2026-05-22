@@ -10,6 +10,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { livros } from "../data/livros";
 
+
 const FAVORITOS_KEY = "@papiro:favoritos";
 const FOTO_PERFIL_KEY = "@papiro:fotoPerfil";
 const AVATAR_PERFIL_KEY = "@papiro:avatarPerfil";
