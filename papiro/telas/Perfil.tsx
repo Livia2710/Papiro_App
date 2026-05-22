@@ -1,4 +1,4 @@
-import {Animated, Alert, Image, ImageBackground, ScrollView, StyleSheet, Text, View, TouchableOpacity, ImageSourcePropType, Dimensions} from "react-native";
+import {Animated, Alert, Image, ImageBackground, ScrollView, StyleSheet, Text, View, TouchableOpacity, ImageSourcePropType, Dimensions, Modal, TextInput} from "react-native";
 import { useCallback, useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
@@ -14,6 +14,7 @@ import { livros } from "../data/livros";
 const FAVORITOS_KEY = "@papiro:favoritos";
 const FOTO_PERFIL_KEY = "@papiro:fotoPerfil";
 const AVATAR_PERFIL_KEY = "@papiro:avatarPerfil";
+const USER_NAME_KEY = "@papiro:nomeUsuario";
 const PROGRESSO_ATUAL = 64;
 
 const {width} = Dimensions.get("window");
@@ -44,6 +45,9 @@ export default function Perfil() {
   const [livrosAnimados, setLivrosAnimados] = useState(0);
   const [favoritosAnimados, setFavoritosAnimados] = useState(0);
   const [emLeituraAnimados, setEmLeituraAnimados] = useState(0);
+  const [nomeUsuario, setNomeUsuario] = useState("Teste");
+  const [modalEditarVisible, setModalEditarVisible] = useState(false);
+  const [nomeEditando, setNomeEditando] = useState("");
 
   const progressoAnimado = useRef(new Animated.Value(0)).current;
 
@@ -60,6 +64,24 @@ export default function Perfil() {
     inputRange: [0, 1],
     outputRange: ["0%", `${PROGRESSO_ATUAL}%`],
   });
+
+  function abrirEditarPerfil() {
+    setNomeEditando(nomeUsuario);
+    setModalEditarVisible(true);
+  }
+
+  async function salvarNomeUsuario() {
+  const nomeTratado = nomeEditando.trim();
+
+  if (nomeTratado.length === 0) {
+    Alert.alert("Nome obrigatório", "Digite um nome para o perfil.");
+    return;
+  }
+
+  setNomeUsuario(nomeTratado);
+  await AsyncStorage.setItem(USER_NAME_KEY, nomeTratado);
+  setModalEditarVisible(false);
+}
 
   function animarNumero(final: number, onUpdate: (valor: number) => void) {
     const valorAnimado = new Animated.Value(0);
@@ -81,6 +103,13 @@ export default function Perfil() {
   async function carregarDados() {
     const favoritosSalvos = await AsyncStorage.getItem(FAVORITOS_KEY);
     const fotoSalva = await AsyncStorage.getItem(FOTO_PERFIL_KEY);
+
+    const nomeSalvo = await AsyncStorage.getItem(USER_NAME_KEY);
+
+    if (nomeSalvo) {
+      setNomeUsuario(nomeSalvo);
+    }
+
     const favoritos = favoritosSalvos ? JSON.parse(favoritosSalvos) : [];
 
     const conquistasSalvas = await carregarConquistas();
@@ -95,7 +124,9 @@ export default function Perfil() {
     if(avatarEncontrado){
       setAvatarSelecionado(avatarEncontrado);
     }
-  
+
+ 
+      
     setFotoPerfil(fotoSalva);
     setLivrosAnimados(0);
     setFavoritosAnimados(0);
@@ -175,7 +206,46 @@ export default function Perfil() {
   : AVATARES;
 
   return (
+    
     <View style={styles.container}>
+      <Modal
+  visible={modalEditarVisible}
+  transparent
+  animationType="fade"
+  onRequestClose={() => setModalEditarVisible(false)}
+>
+  <View style={styles.editModalOverlay}>
+    <View style={styles.editModalCard}>
+      <Text style={styles.editModalTitle}>Editar perfil</Text>
+
+      <Text style={styles.editModalLabel}>Nome de usuário</Text>
+      <TextInput
+        style={styles.editModalInput}
+        value={nomeEditando}
+        onChangeText={setNomeEditando}
+        placeholder="Digite seu nome"
+        placeholderTextColor="#8B4513"
+      />
+
+      <View style={styles.editModalActions}>
+        <TouchableOpacity
+          style={styles.editModalCancel}
+          onPress={() => setModalEditarVisible(false)}
+        >
+          <Text style={styles.editModalCancelText}>Cancelar</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.editModalSave}
+          onPress={salvarNomeUsuario}
+        >
+          <Text style={styles.editModalSaveText}>Salvar</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+</Modal>
+
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[
@@ -193,12 +263,12 @@ export default function Perfil() {
         >
           <View style={styles.headerTop}>
             <View>
-              <Text style={styles.headerTitle}>Livia</Text>
+              <Text style={styles.headerTitle}>{nomeUsuario}</Text>
               <Text style={styles.headerSubtitle}>Leitora de fantasia e clássicos</Text>
             </View>
 
-            <TouchableOpacity style={styles.editButton} onPress={abrirOpcoesDeFoto}>
-              <Ionicons name="camera-outline" size={21} color="#F8EDE5" />
+            <TouchableOpacity style={styles.editButton} onPress={abrirEditarPerfil}>
+              <Ionicons name="create-outline" size={21} color="#F8EDE5" />
             </TouchableOpacity>
           </View>
         </ImageBackground>
@@ -640,9 +710,80 @@ avatarList: {
   height: 145,
   bottom: 8,
   zIndex: 3,
- 
+},
+editModalOverlay: {
+  flex: 1,
+  backgroundColor: "rgba(48, 31, 24, 0.65)",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 24,
 },
 
+editModalCard: {
+  width: "100%",
+  backgroundColor: "#F8EDE5",
+  borderRadius: 16,
+  padding: 20,
+  elevation: 8,
+  shadowColor: "#000",
+  shadowOpacity: 0.2,
+  shadowRadius: 10,
+},
+
+editModalTitle: {
+  fontSize: 20,
+  color: "#5A3A2B",
+  fontFamily: "Merriweather_700Bold",
+  marginBottom: 16,
+},
+
+editModalLabel: {
+  color: "#5A3A2B",
+  marginBottom: 6,
+  fontFamily: "Lora_400Regular",
+},
+
+editModalInput: {
+  backgroundColor: "#FAEFE7",
+  borderRadius: 10,
+  padding: 12,
+  borderWidth: 1,
+  borderColor: "#D4A373",
+  color: "#5A3A2B",
+  fontFamily: "Lora_400Regular",
+},
+
+editModalActions: {
+  flexDirection: "row",
+  justifyContent: "flex-end",
+  gap: 10,
+  marginTop: 18,
+},
+
+editModalCancel: {
+  paddingVertical: 10,
+  paddingHorizontal: 14,
+  borderRadius: 10,
+  borderWidth: 1,
+  borderColor: "#8B4513",
+},
+
+editModalCancelText: {
+  color: "#8B4513",
+  fontFamily: "Merriweather_700Bold",
+},
+
+editModalSave: {
+  paddingVertical: 10,
+  paddingHorizontal: 18,
+  borderRadius: 10,
+  backgroundColor: "#2A9D8F",
+},
+
+editModalSaveText: {
+  color: "#F8EDE5",
+  fontFamily: "Merriweather_700Bold",
+},
 });
 
 
