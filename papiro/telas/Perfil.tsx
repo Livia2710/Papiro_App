@@ -3,8 +3,10 @@ import { useCallback, useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { carregarConquistas, Conquistas } from "../utils/conquistas";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 import { livros } from "../data/livros";
 
@@ -18,6 +20,10 @@ const {width} = Dimensions.get("window");
 const AVATAR_SIZE = 86;
 const AVATAR_SPACING = 15;
 const AVATAR_ITEM_SIZE = AVATAR_SIZE + AVATAR_SPACING;
+const AVATAR_SECRETO: { id: string; image: ImageSourcePropType } = {
+  id: "secreto",
+  image: require("../assets/avatares/avatarEspecial1.png"),
+};
 
 const AVATARES: { id: string; image: ImageSourcePropType }[] = [
   { id: "1",  image: require("../assets/avatares/avatar1.jpg") },
@@ -42,6 +48,12 @@ export default function Perfil() {
 
   const totalLivros = livros.length;
   const totalEmLeitura = Math.min(4, totalLivros);
+
+  const[conquistas, setConquistas] = useState<Conquistas>({
+    tutorialVideo: false,
+    audioLeitor: false,
+    comboFinal: false,
+  });
 
   const progressoWidth = progressoAnimado.interpolate({
     inputRange: [0, 1],
@@ -70,8 +82,14 @@ export default function Perfil() {
     const fotoSalva = await AsyncStorage.getItem(FOTO_PERFIL_KEY);
     const favoritos = favoritosSalvos ? JSON.parse(favoritosSalvos) : [];
 
+    const conquistasSalvas = await carregarConquistas();
+    setConquistas(conquistasSalvas);
+
+    const listaAtual = conquistasSalvas.tutorialVideo 
+    ? [...AVATARES, AVATAR_SECRETO] : AVATARES;
+
     const avatarSalvo = await AsyncStorage.getItem(AVATAR_PERFIL_KEY);
-    const avatarEncontrado = AVATARES.find(a => a.id === avatarSalvo);
+    const avatarEncontrado = listaAtual.find(a => a.id === avatarSalvo);
 
     if(avatarEncontrado){
       setAvatarSelecionado(avatarEncontrado);
@@ -151,6 +169,10 @@ export default function Perfil() {
     ]);
   }
 
+  const avataresDisponiveis = conquistas.tutorialVideo
+  ? [...AVATARES, AVATAR_SECRETO]
+  : AVATARES;
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -181,7 +203,7 @@ export default function Perfil() {
         </ImageBackground>
 
         <Animated.FlatList
-          data={AVATARES}
+          data={avataresDisponiveis}
           keyExtractor={(item) => item.id}
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -197,7 +219,7 @@ export default function Perfil() {
           )}
           onMomentumScrollEnd={async (event) => {
             const index = Math.round(event.nativeEvent.contentOffset.x / AVATAR_ITEM_SIZE);
-            const avatar = AVATARES[index];
+            const avatar = avataresDisponiveis[index];
 
             if (avatar) {
               setAvatarSelecionado(avatar);
@@ -306,25 +328,25 @@ export default function Perfil() {
         <Text style={styles.sectionTitle}>Conquistas</Text>
 
         <View style={styles.achievements}>
-          <View style={styles.achievementCard}>
-            <View style={[styles.achievementIcon, { backgroundColor: "#2A9D8F" }]}>
-              <Ionicons name="calendar-outline" size={22} color="#F8EDE5" />
+          <View style={[styles.achievementCard, !conquistas.tutorialVideo && styles.achievementLocked]}>
+            <View style={[styles.achievementIcon, { backgroundColor: conquistas.tutorialVideo ? "#2A9D8F" : "#C8B2A3" }]}>
+              <Ionicons name="play-circle-outline" size={22} color="#F8EDE5" />
             </View>
-            <Text style={styles.achievementText}>Meta semanal</Text>
+            <Text style={styles.achievementText}>Guia do Papiro</Text>
           </View>
 
-          <View style={styles.achievementCard}>
-            <View style={[styles.achievementIcon, { backgroundColor: "#D4A373" }]}>
-              <Ionicons name="library-outline" size={22} color="#5A3A2B" />
+          <View style={[styles.achievementCard, !conquistas.audioLeitor && styles.achievementLocked]}>
+            <View style={[styles.achievementIcon, { backgroundColor: conquistas.audioLeitor ? "#D4A373" : "#C8B2A3" }]}>
+              <Ionicons name="volume-high-outline" size={22} color={conquistas.audioLeitor ? "#5A3A2B" : "#F8EDE5"} />
             </View>
-            <Text style={styles.achievementText}>Clássicos</Text>
+            <Text style={styles.achievementText}>Voz da Leitura</Text>
           </View>
 
-          <View style={styles.achievementCard}>
-            <View style={[styles.achievementIcon, { backgroundColor: "#8B4513" }]}>
-              <Ionicons name="book-outline" size={22} color="#F8EDE5" />
+          <View style={[styles.achievementCard, !conquistas.comboFinal && styles.achievementLocked]}>
+            <View style={[styles.achievementIcon, { backgroundColor: conquistas.comboFinal ? "#8B4513" : "#C8B2A3" }]}>
+              <Ionicons name="sparkles-outline" size={22} color="#F8EDE5" />
             </View>
-            <Text style={styles.achievementText}>Biblioteca</Text>
+            <Text style={styles.achievementText}>Leitora Desperta</Text>
           </View>
         </View>
       </ScrollView>
@@ -519,6 +541,7 @@ const styles = StyleSheet.create({
   },
 
   achievementCard: {
+    position: "relative",
     flex: 1,
     backgroundColor: "#F8EDE5",
     borderRadius: 12,
@@ -546,6 +569,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: "Merriweather_700Bold",
   },
+
+  achievementLocked: {
+  opacity: 0.55,
+},
 
 cameraBadge: {
   position: "absolute",

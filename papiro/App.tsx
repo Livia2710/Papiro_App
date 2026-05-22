@@ -1,9 +1,9 @@
+import { carregarConquistas, Conquistas } from "./utils/conquistas";
+import { Livro } from "./data/livros"; /*importando os livros localmente */
+
 // Aqui definimos TODAS as telas do app e que cada um recebe ao navegar.
 // Isso funciona como um "mapa" da navegação
 // Exemplo: quando abrimos a tela Leitor, precisamos passar um livro para ela.
-
-import { Livro } from "./data/livros"; /*importando os livros localmente */
-
 export type RootStackParamList = {
   Inicial: undefined; //não recebe nada
   Login: undefined;
@@ -20,8 +20,10 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'; //Menu
 import { createNativeStackNavigator } from '@react-navigation/native-stack'; //navegação em pilhas(tipo páginas)
 
 // Componentes visuais(Cada coisa nova deve ser importada)
-import { ImageBackground, View } from 'react-native';
+import { ImageBackground, View, Text } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons'; //Ícones
+import { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Telas
 import Sobre from "./telas/Perfil";
@@ -37,13 +39,59 @@ import Leitor from './telas/Leitor';
 // Isso evita bug visual(front trocando na tela)
 import { useFonts, Merriweather_400Regular, Merriweather_700Bold } from '@expo-google-fonts/merriweather';
 import { Lora_400Regular, Lora_700Bold } from '@expo-google-fonts/lora';
+import Perfil from "./telas/Perfil";
+
+const CONQUISTAS_VISTAS_KEY = "@papiro:conquistasVistas";
 
 // Criação dos navegadores
 const Tab = createBottomTabNavigator(); //Menu de baixo
 const Stack = createNativeStackNavigator<RootStackParamList>(); //Navegação principal(usar o RootStackParamList evita erro)
 
+async function contarConquistasNovas() {
+  const conquistas = await carregarConquistas();
+
+  const vistasSalvas = await AsyncStorage.getItem(CONQUISTAS_VISTAS_KEY);
+  const vistas = vistasSalvas
+    ? JSON.parse(vistasSalvas)
+    : {
+        tutorialVideo: false,
+        audioLeitor: false,
+        comboFinal: false,
+      };
+
+  let total = 0;
+
+  if (conquistas.tutorialVideo && !vistas.tutorialVideo) total++;
+  if (conquistas.audioLeitor && !vistas.audioLeitor) total++;
+  if (conquistas.comboFinal && !vistas.comboFinal) total++;
+
+  return total;
+}
+
 // Menu Principal com abas
 function Menu(){
+  const [novasConquistas, setNovasConquistas] = useState(0);
+
+  async function atualizarBadge() {
+    const total = await contarConquistasNovas();
+    setNovasConquistas(total);
+  }
+
+  async function marcarConquistasComoVistas() {
+  const conquistas = await carregarConquistas();
+
+  await AsyncStorage.setItem(
+    CONQUISTAS_VISTAS_KEY,
+    JSON.stringify(conquistas)
+  );
+
+  setNovasConquistas(0);
+}
+
+  useEffect(() => {
+    atualizarBadge();
+  }, []);
+
   return (
     <Tab.Navigator id={undefined} //O container onde fica as abas
       screenOptions={({route})=>({ // Configurações da tela
@@ -69,6 +117,22 @@ function Menu(){
             <View style={{alignItems:"center", justifyContent:"center"}}>
               {/* Monstra os icone que mudam graça ao icoName */}
             <Ionicons name={iconName} size={size} color={color} />
+
+            {route.name === "Perfil" && novasConquistas > 0 && (
+              <View style={{
+                position:"absolute",
+                right:-10,
+                top:-6,
+                minWidth: 18,
+                height: 20,
+                borderRadius: 9,
+                backgroundColor: "#2A9D8F",
+                alignItems: "center",
+                justifyContent: "center",
+              }}>
+                <Text style={{color:"#F8EDE5", fontSize:12,  fontFamily: "Merriweather_700Bold", fontWeight:"bold"}}>{novasConquistas}</Text>
+              </View>
+            )}
 
                {/* linha lateral */}
               <View
@@ -122,9 +186,9 @@ function Menu(){
       })}
     >
       {/* São as abas do menu inferior */}
-      <Tab.Screen name="Home" component={Home}/>
-      <Tab.Screen name="Biblioteca" component={Biblioteca}/>
-      <Tab.Screen name="Perfil" component={Sobre}/>
+      <Tab.Screen name="Home" component={Home} listeners={{focus:atualizarBadge}}/>
+      <Tab.Screen name="Biblioteca" component={Biblioteca} listeners={{focus:atualizarBadge}}/>
+      <Tab.Screen name="Perfil" component={Perfil} listeners={{focus:marcarConquistasComoVistas}}/>
     </Tab.Navigator>
   )
 }

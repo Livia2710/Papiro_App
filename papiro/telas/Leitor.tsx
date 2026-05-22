@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-nati
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useState, useEffect, useRef } from "react";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { salvarConquista } from '../utils/conquistas';
 import { Ionicons } from '@expo/vector-icons';
 import * as Speech from "expo-speech";
 
@@ -26,8 +27,6 @@ export default function Leitor() {
   const [selectedVoice, setSelectedVoice] = useState<string | undefined>(undefined);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const parteAtualRef = useRef(0);
-
-
 
   const shouldSpeakRef = useRef(false); 
 
@@ -61,8 +60,6 @@ export default function Leitor() {
 
     panel: darkMode ? "#8B4513" : "#D4A373",
   };
-
-
 
   const VOZES_PREFERIDAS: VozPreferida[] = [
     { label: "Feminina offline", identifier: "pt-br-x-pte-local" },
@@ -104,6 +101,8 @@ export default function Leitor() {
   }
 
    async function falarTexto(iniciarDoComeco: boolean = false){
+    await salvarConquista("audioLeitor");
+    
     shouldSpeakRef.current = true;
     setIsSpeaking(true); 
     setIsPaused(false);

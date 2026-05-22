@@ -1,14 +1,26 @@
-import { ScrollView, StyleSheet, Text, View, Image, TextInput, TouchableOpacity } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, Image, TextInput, TouchableOpacity, Modal } from 'react-native';
+import { useEventListener } from 'expo';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from "../App"; 
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"; 
-import {useSafeAreaInsets} from "react-native-safe-area-context";
-import { useState } from 'react'; 
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useState, useEffect } from 'react'; 
 
 // data
 import { livros } from "../data/livros";
 import { categorias } from "../data/categorias";
+
+//utils
+import { carregarConquistas, salvarConquista } from '../utils/conquistas';
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const CONQUISTAS_KEY = "@papiro:conquistas";
+const AVATAR_PERFIL_KEY = "@papiro:avatarPerfil";
+const CONQUISTAS_VISTAS_KEY = "@papiro:conquistasVistas";
+
 
 type NavigationProps = NativeStackNavigationProp<RootStackParamList> //Não especifica, pois Home está dentro do Menu
 
@@ -18,6 +30,38 @@ export default function Home() {
 
   const [search, setSearch] = useState(""); 
   const [selectedCategory, setselectedCategory] = useState<string | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const player = useVideoPlayer(require("../assets/VideoApp.mp4"), player => {
+    player.loop = false;
+    player.play();
+  });
+
+  useEventListener(player, "playToEnd", async () => {
+    await salvarConquista("tutorialVideo");
+    player.pause();
+    setModalVisible(false);
+  });
+
+  useEffect(() => {
+    async function verificarTutorial(){
+      const conquistas = await carregarConquistas();
+      if(!conquistas.tutorialVideo){
+        setModalVisible(true);
+      }
+    }
+    verificarTutorial();
+  }, []);
+
+  useEffect(() => {
+  if (modalVisible) {
+    player.currentTime = 0;
+    player.play();
+  } else {
+    player.pause();
+  }
+}, [modalVisible]);
+
 
   // Filtro
   const filtroLivros = livros.filter((livro) => {
@@ -33,10 +77,56 @@ export default function Home() {
     return PorCategoria && PorBusca;
   });
 
+  function fecharModal(){
+    player.pause();
+    setModalVisible(false);
+  }
+
+  async function resetarConquistas() {
+  await AsyncStorage.multiRemove([
+    CONQUISTAS_KEY,
+    AVATAR_PERFIL_KEY,
+    CONQUISTAS_VISTAS_KEY,
+  ]);
+
+  console.log("Conquistas e avatar secreto resetados");
+}
+
   return (
-    //Tela inteira rolável
+    <View style={styles.screen}>
+    <Modal
+      visible={modalVisible}
+      transparent
+      animationType="fade"
+      onRequestClose={fecharModal}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalCard}>
+          <View style={styles.modalHeader}>
+            <View>
+              <Text style={styles.modalTitle}>Bem-vinda ao Papiro</Text>
+              <Text style={styles.modalSubtitle}>
+                Assista ao guia até o final para desbloquear uma conquista.
+              </Text>
+            </View>
+
+            <TouchableOpacity style={styles.modalClose} onPress={fecharModal}>
+              <Ionicons name="close" size={22} color="#F8EDE5" />
+            </TouchableOpacity>
+          </View>
+
+          <VideoView style={styles.video} player={player} allowsPictureInPicture={false} nativeControls={false}/>
+        </View>
+      </View>
+    </Modal>
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 120 }]} showsVerticalScrollIndicator={false}>
       
+    {/* O RESETAR CONQUISTAS(APAGAR DEPOIS) */}
+    <TouchableOpacity style={styles.resetButton} onPress={resetarConquistas}>
+    <Ionicons name="refresh-outline" size={16} color="#F8EDE5" />
+    <Text style={styles.resetButtonText}>Resetar conquistas</Text>
+  </TouchableOpacity>
+
      {/* Buscar */}
       <View style={styles.searchContainer}>
         {/* Ícone de lupa */}
@@ -111,6 +201,8 @@ export default function Home() {
         ))}
       </ScrollView>
     </ScrollView>
+
+    </View>
    
   );
 }
@@ -155,10 +247,6 @@ categoryActive: {
     color: "#5A3A2B",
     marginBottom: 10,
     fontFamily: "Merriweather_700Bold",
-  },
-
-  categories: {
-    flexDirection: "row",
   },
 
   category: {
@@ -243,5 +331,87 @@ categoryActive: {
   color: "#5A3A2B",
   textAlign: "center",
   fontFamily: "Merriweather_400Regular",
+},
+
+screen: {
+  flex: 1,
+  backgroundColor: "#F6E2D2",
+},
+
+modalOverlay: {
+  flex: 1,
+  backgroundColor: "rgba(48, 31, 24, 0.68)",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 22,
+},
+
+modalCard: {
+  width: "100%",
+  maxWidth: 360,
+  backgroundColor: "#F8EDE5",
+  borderRadius: 18,
+  overflow: "hidden",
+  elevation: 8,
+  shadowColor: "#000",
+  shadowOpacity: 0.25,
+  shadowRadius: 12,
+},
+
+modalHeader: {
+  backgroundColor: "#8B4513",
+  padding: 16,
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "flex-start",
+  gap: 12,
+},
+
+modalTitle: {
+  color: "#F8EDE5",
+  fontSize: 18,
+  fontFamily: "Merriweather_700Bold",
+},
+
+modalSubtitle: {
+  color: "#D4A373",
+  fontSize: 12,
+  marginTop: 6,
+  maxWidth: 250,
+  fontFamily: "Lora_400Regular",
+},
+
+modalClose: {
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  backgroundColor: "#5A3A2B",
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+video: {
+  width: "100%",
+  aspectRatio: 9 / 16,
+  backgroundColor: "#5A3A2B",
+},
+
+// APAGAR DEPOIS
+resetButton: {
+  backgroundColor: "#8B4513",
+  borderRadius: 10,
+  paddingVertical: 10,
+  paddingHorizontal: 14,
+  marginBottom: 18,
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 8,
+},
+
+resetButtonText: {
+  color: "#F8EDE5",
+  fontSize: 12,
+  fontFamily: "Merriweather_700Bold",
 },
 });
