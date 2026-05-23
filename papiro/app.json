@@ -4,11 +4,10 @@
     "slug": "papiro",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo_splash.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
+      "image": "./assets/logo_splash.png",
       "backgroundColor": "#8B4513"
     },
     "ios": {
