@@ -2,9 +2,10 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-nati
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useState, useEffect, useRef } from "react";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { salvarConquista } from '../utils/conquistas';
+import { salvarConquista, carregarConquistas } from '../utils/conquistas';
 import { Ionicons } from '@expo/vector-icons';
 import * as Speech from "expo-speech";
+import ConquistaModal from '../components/ConquistaModal';
 
 type VozPreferida = {
   label: string;
@@ -27,44 +28,33 @@ export default function Leitor() {
   const [selectedVoice, setSelectedVoice] = useState<string | undefined>(undefined);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const parteAtualRef = useRef(0);
+  const [paragraphIndex, setParagraphIndex] = useState<number>(-1);
 
   const shouldSpeakRef = useRef(false); 
 
   const textoLivro = livro.chapter1 ?? "Prévia indisponível para este livro"; 
-  const readingMode = isSpeaking || isPaused;
+ 
 
   const theme = {
-    background: readingMode
-      ? darkMode
-        ? "#3F2A22"
-        : "#FFF0D8"
-      : darkMode
-        ? "#5A3A2B"
-        : "#F8EDE5",
-
-    text: darkMode ? "#F8EDE5" : "#5A3A2B",
-
-    readerText: readingMode
-      ? darkMode
-        ? "#FFF7ED"
-        : "#7A3E16"
-      : darkMode
-        ? "#F8EDE5"
-        : "#5A3A2B",
-
-    accent: readingMode
-      ? "#D4A373"
-      : darkMode
-        ? "#D4A373"
-        : "#00897B",
-
-    panel: darkMode ? "#8B4513" : "#D4A373",
-  };
+  background: darkMode ? "#5A3A2B" : "#F8EDE5",
+  text: darkMode ? "#F8EDE5" : "#5A3A2B",
+  readerText: darkMode ? "#F8EDE5" : "#5A3A2B",
+  accent: darkMode ? "#D4A373" : "#00897B",
+  panel: darkMode ? "#8B4513" : "#D4A373",
+};
 
   const VOZES_PREFERIDAS: VozPreferida[] = [
     { label: "Zoe", identifier: "pt-br-x-pte-local" },
     { label: "Edu", identifier: "pt-br-x-ptd-local" }
   ];
+
+  const [conquistaModal, setConquistaModal] = useState(false);
+  const [conquistaInfo, setConquistaInfo] = useState({
+    titulo: "",
+    descricao: "",
+    icone: "",
+    cor: "",
+  });
 
   useEffect(() => {
     return () => {
@@ -99,15 +89,35 @@ export default function Leitor() {
   }
 
    async function falarTexto(iniciarDoComeco: boolean = false){
-    await salvarConquista("audioLeitor");
+    const conquistasAntes = await carregarConquistas();
+    const conquistasDepois = await salvarConquista("audioLeitor");
+
+     if (!conquistasAntes.audioLeitor && conquistasDepois.audioLeitor) {
+    setConquistaInfo({
+      titulo: "Voz da Leitura",
+      descricao: "Você usou o leitor de voz pela primeira vez!",
+      icone: "volume-high-outline",
+      cor: "#D4A373",
+    });
+    setConquistaModal(true);
+  }
+
+  if (!conquistasAntes.comboFinal && conquistasDepois.comboFinal) {
+    setConquistaInfo({
+      titulo: "Leitora Desperta",
+      descricao: "Você completou o tutorial e usou o leitor de voz. Incrível!",
+      icone: "sparkles-outline",
+      cor: "#8B4513",
+    });
+    setConquistaModal(true);
+  }
     
     shouldSpeakRef.current = true;
     setIsSpeaking(true); 
     setIsPaused(false);
+    await Speech.stop(); 
 
-    await Speech.stop(); // Para qualquer fala anterior
-
-    const partes = dividirTexto(textoLivro);
+     const partes = textoLivro.split("\n\n").filter(p => p.trim().length > 0);
 
     if(iniciarDoComeco){
       parteAtualRef.current = 0;
@@ -117,6 +127,7 @@ export default function Leitor() {
       if(!shouldSpeakRef.current) break;
 
       parteAtualRef.current = i;
+      setParagraphIndex(i);
 
       await new Promise<void>((resolve) => {
         Speech.speak(partes[i], {
@@ -136,6 +147,7 @@ export default function Leitor() {
       setIsPaused(false);
     }
 
+    setParagraphIndex(-1);
     shouldSpeakRef.current = false;
     setIsSpeaking(false);
   }
@@ -144,6 +156,7 @@ export default function Leitor() {
     shouldSpeakRef.current = false;
      Speech.stop();
     setIsSpeaking(false);
+    setParagraphIndex(-1);
   }
 
   function pausarAudio() {
@@ -164,7 +177,16 @@ export default function Leitor() {
 
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <View style={styles.container}>
+
+       <ConquistaModal
+      visible={conquistaModal}
+      titulo={conquistaInfo.titulo}
+      descricao={conquistaInfo.descricao}
+      icone={conquistaInfo.icone}
+      cor={conquistaInfo.cor}
+      onFechar={() => setConquistaModal(false)}
+    />
 
       {/* Botão de Voltar */}
       <TouchableOpacity style={[styles.back, {top: insets.top + 20}]} onPress={() => navigation.goBack()}>
@@ -253,6 +275,12 @@ export default function Leitor() {
                   fontSize: fontSize,
                   lineHeight: fontSize * 1.6,
                   color: theme.readerText,
+                },
+                index === paragraphIndex && {
+                  backgroundColor: darkMode ? "#5A3A2B" : "#FFE4B5",
+                  borderRadius: 6,
+                  paddingHorizontal: 6,
+                  color: darkMode ? "#FFF7ED" : "#5A1A00",
                 }
               ]}
             >
