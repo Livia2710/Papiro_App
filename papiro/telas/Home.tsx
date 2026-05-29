@@ -135,12 +135,12 @@ export default function Home() {
       placeholder='Buscar livros'
       placeholderTextColor="#5A3A2B"
       value={search} //Pega o valor atual
-      onChangeText={setSearch}/> {/*Atualiza o estado e o filtro roda*/}
+      onChangeText={setSearch}/> 
     </View>
 
     {/* Categorias */}
     <Text style={styles.sectionTitle}>Categorias</Text>
-    <ScrollView horizontal showsHorizontalScrollIndicator={false}> {/*Esse false tira aquele cursos de scroll feio */}
+    <ScrollView horizontal showsHorizontalScrollIndicator={false}> 
       {/* Percorre lista de categoria */}
       {categorias.map((cat)=> (
         <TouchableOpacity 

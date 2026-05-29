@@ -62,10 +62,8 @@ export default function Leitor() {
   };
 
   const VOZES_PREFERIDAS: VozPreferida[] = [
-    { label: "Feminina offline", identifier: "pt-br-x-pte-local" },
-    { label: "Feminina online", identifier: "pt-br-x-pte-network" },
-    { label: "Masculina offline", identifier: "pt-br-x-ptd-local" },
-    { label: "Masculina online", identifier: "pt-br-x-ptd-network" },
+    { label: "Zoe", identifier: "pt-br-x-pte-local" },
+    { label: "Edu", identifier: "pt-br-x-ptd-local" }
   ];
 
   useEffect(() => {

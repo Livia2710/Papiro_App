@@ -47,17 +47,17 @@ export default function Biblioteca() {
       {/* Abas */}
       <View style={styles.tabs}>
         <TouchableOpacity 
-          style={[styles.tab, aba === "recentes" && styles.activeTab]}
+          style={[styles.tab, aba === "recentes" && styles.activeTabContainer]}
           onPress={() => setAba("recentes")}
         >
-          <Text style={[styles.tabText, aba === "recentes" && styles.activeTab]}>Recentes</Text>
+          <Text style={[styles.tabText, aba === "recentes" && styles.activeTabText]}>Recentes</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
-          style={[styles.tab, aba === "favoritos" && styles.activeTab]}
+          style={[styles.tab, aba === "favoritos" && styles.activeTabContainer]}
           onPress={() => setAba("favoritos")}
         >
-          <Text style={[styles.tabText, aba === "favoritos" && styles.activeTab]}>Favoritos</Text>
+          <Text style={[styles.tabText, aba === "favoritos" && styles.activeTabText]}>Favoritos</Text>
         </TouchableOpacity>
       </View>
 
@@ -139,12 +139,13 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 5
   },
-
-  activeTab: {
-    backgroundColor: "#2A9D8F",
-    color:"#F8EDE5"
-  },
-
+  // ADICIONAR:
+    activeTabContainer: {
+      backgroundColor: "#2A9D8F",
+    },
+    activeTabText: {
+      color: "#F8EDE5",
+    },
   tabText: {
     color: "#5A3A2B",
     fontFamily: "Merriweather_700Bold",
